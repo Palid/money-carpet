@@ -91,9 +91,14 @@ export function worldToBuffer(x: number, y: number, view: BufferView): [number, 
 // tooltip.ts's hit-testing, so the two stay in agreement).
 // ---------------------------------------------------------------------------
 
-/** rot=1 swaps the note's footprint (portrait/landscape), anchored at the same top-left. */
-export function noteEffectiveExtent(wUnits: number, hUnits: number, rot: number): [number, number] {
-  return rot === 1 ? [hUnits, wUnits] : [wUnits, hUnits];
+/**
+ * PackGeometry.w/h already store the EFFECTIVE, as-placed footprint (the
+ * packer applies any rotation before writing geometry). `rot` is metadata
+ * only (whether the piece was placed rotated vs. its catalog orientation)
+ * and must NOT be re-applied here - doing so would double-rotate the piece.
+ */
+export function noteEffectiveExtent(wUnits: number, hUnits: number, _rot: number): [number, number] {
+  return [wUnits, hUnits];
 }
 
 export function pieceCenter(result: PackResult, index: number): [number, number] {

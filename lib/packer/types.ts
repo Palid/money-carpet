@@ -13,16 +13,22 @@ export interface DenomRef {
 
 // All coordinates are fixed-point integers in 1/100 mm (see FP).
 // Notes: (x,y) is TOP-LEFT, plus w,h,rot. Coins: (x,y) is CENTER, plus r.
+//
+// w,h are the EFFECTIVE, as-placed footprint dimensions - i.e. draw a w x h
+// rect directly at (x,y), with no further rotation. `rot` is metadata only
+// (whether the piece was placed rotated vs. its catalog orientation) and
+// must NOT be re-applied by renderers/consumers; doing so double-rotates
+// the piece (see lib/render/draw.ts's noteEffectiveExtent).
 export interface PackGeometry {
   count: number; // pieces actually stored (real drawn geometry)
   kind: Uint8Array; // 0 = note, 1 = coin
   denom: Uint16Array; // index into denomTable
   x: Int32Array;
   y: Int32Array;
-  w: Int32Array; // note width (0 for coins)
-  h: Int32Array; // note height (0 for coins)
+  w: Int32Array; // note EFFECTIVE (as-placed) width (0 for coins)
+  h: Int32Array; // note EFFECTIVE (as-placed) height (0 for coins)
   r: Int32Array; // coin radius (0 for notes)
-  rot: Uint8Array; // note orientation 0/1 (0 for coins)
+  rot: Uint8Array; // note orientation metadata 0/1 (0 for coins); NOT re-applied to w/h
 }
 export interface PerDenomStat {
   denomIndex: number;

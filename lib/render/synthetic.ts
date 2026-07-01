@@ -136,7 +136,10 @@ export function makeSyntheticResult(opts: SyntheticOptions = {}): PackResult {
     w[i] = mmToUnits(spec.wMm);
     h[i] = mmToUnits(spec.hMm);
     r[i] = 0;
-    rot[i] = rand() < 0.5 ? 0 : 1;
+    // w/h already store the effective, as-placed footprint (matching the real
+    // packer's convention - see lib/packer/types.ts), so rot is metadata only
+    // and is always 0 here (no rotation applied to the generated grid).
+    rot[i] = 0;
     i++;
   }
   const noteRows = noteCount > 0 ? Math.ceil(noteCount / noteCols) : 0;
