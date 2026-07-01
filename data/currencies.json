@@ -1,0 +1,352 @@
+{
+  "version": 1,
+  "currencies": [
+    {
+      "code": "PLN",
+      "name": "Polish Złoty",
+      "flag": "pl",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 1000, "widthMm": 120, "heightMm": 60, "color": "#A94442", "label": "10 zł", "series": "2012-2019", "sourceUrl": "https://www.nbp.pl/banknoty/" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 126, "heightMm": 63, "color": "#2D6CA2", "label": "20 zł", "series": "2012-2019", "sourceUrl": "https://www.nbp.pl/banknoty/" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 132, "heightMm": 66, "color": "#C9A227", "label": "50 zł", "series": "2012-2019", "sourceUrl": "https://www.nbp.pl/banknoty/" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 138, "heightMm": 69, "color": "#6B4423", "label": "100 zł", "series": "2012-2019", "sourceUrl": "https://www.nbp.pl/banknoty/" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 144, "heightMm": 72, "color": "#2E7D32", "label": "200 zł", "series": "2012-2019", "sourceUrl": "https://www.nbp.pl/banknoty/" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 150, "heightMm": 75, "color": "#6A3B82", "label": "500 zł", "series": "2016", "sourceUrl": "https://www.nbp.pl/banknoty/" },
+        { "kind": "coin", "minorValue": 1, "diameterMm": 15.5, "shape": "circle", "color": "#B87333", "label": "1 gr" },
+        { "kind": "coin", "minorValue": 2, "diameterMm": 17.0, "shape": "circle", "color": "#B87333", "label": "2 gr" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 19.5, "shape": "circle", "color": "#B87333", "label": "5 gr" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 16.5, "shape": "circle", "color": "#C9B037", "label": "10 gr" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 18.5, "shape": "circle", "color": "#C9B037", "label": "20 gr" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 20.5, "shape": "circle", "color": "#C9B037", "label": "50 gr" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.0, "shape": "circle", "color": "#C0C0C0", "label": "1 zł" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 21.5, "shape": "circle", "color": "#C0C0C0", "label": "2 zł" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 24.0, "shape": "circle", "color": "#D4AF37", "label": "5 zł" }
+      ]
+    },
+    {
+      "code": "EUR",
+      "name": "Euro",
+      "flag": "eu",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 500, "widthMm": 120, "heightMm": 62, "color": "#8C8C8C", "label": "€5", "series": "Europa" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 127, "heightMm": 67, "color": "#B0342A", "label": "€10", "series": "Europa" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 133, "heightMm": 72, "color": "#1F6FB2", "label": "€20", "series": "Europa" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 140, "heightMm": 77, "color": "#E07A28", "label": "€50", "series": "Europa" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 147, "heightMm": 77, "color": "#3C8C3C", "label": "€100", "series": "Europa" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 153, "heightMm": 77, "color": "#D4A017", "label": "€200", "series": "Europa" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 160, "heightMm": 82, "color": "#7B3F9E", "label": "€500", "series": "First series", "status": "legalTenderNotIssued" },
+        { "kind": "coin", "minorValue": 1, "diameterMm": 16.25, "shape": "circle", "color": "#B87333", "label": "1c" },
+        { "kind": "coin", "minorValue": 2, "diameterMm": 18.75, "shape": "circle", "color": "#B87333", "label": "2c" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 21.25, "shape": "circle", "color": "#B87333", "label": "5c" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 19.75, "shape": "circle", "color": "#C9B037", "label": "10c" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 22.25, "shape": "circle", "color": "#C9B037", "label": "20c" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 24.25, "shape": "circle", "color": "#C9B037", "label": "50c" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.25, "shape": "circle", "color": "#C0C0C0", "label": "€1" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 25.75, "shape": "circle", "color": "#D4AF37", "label": "€2" }
+      ]
+    },
+    {
+      "code": "USD",
+      "name": "US Dollar",
+      "flag": "us",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 100, "widthMm": 156, "heightMm": 66.3, "color": "#85BB65", "label": "$1" },
+        { "kind": "note", "minorValue": 200, "widthMm": 156, "heightMm": 66.3, "color": "#7A9E7E", "label": "$2" },
+        { "kind": "note", "minorValue": 500, "widthMm": 156, "heightMm": 66.3, "color": "#C9A0DC", "label": "$5" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 156, "heightMm": 66.3, "color": "#F4A460", "label": "$10" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 156, "heightMm": 66.3, "color": "#D9E4AA", "label": "$20" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 156, "heightMm": 66.3, "color": "#E8B4B8", "label": "$50" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 156, "heightMm": 66.3, "color": "#7DB89D", "label": "$100" },
+        { "kind": "coin", "minorValue": 1, "diameterMm": 19.05, "shape": "circle", "color": "#B87333", "label": "1c" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 21.21, "shape": "circle", "color": "#C0C0C0", "label": "5c" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 17.91, "shape": "circle", "color": "#C0C0C0", "label": "10c" },
+        { "kind": "coin", "minorValue": 25, "diameterMm": 24.26, "shape": "circle", "color": "#C0C0C0", "label": "25c" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 30.61, "shape": "circle", "color": "#C0C0C0", "label": "50c" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 26.49, "shape": "circle", "color": "#D4AF37", "label": "$1" }
+      ]
+    },
+    {
+      "code": "GBP",
+      "name": "British Pound",
+      "flag": "gb",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 500, "widthMm": 125, "heightMm": 65, "color": "#008080", "label": "£5", "series": "Polymer" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 132, "heightMm": 69, "color": "#D2691E", "label": "£10", "series": "Polymer" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 139, "heightMm": 73, "color": "#7B3F9E", "label": "£20", "series": "Polymer" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 146, "heightMm": 77, "color": "#B22222", "label": "£50", "series": "Polymer" },
+        { "kind": "coin", "minorValue": 1, "diameterMm": 20.3, "shape": "circle", "color": "#B87333", "label": "1p" },
+        { "kind": "coin", "minorValue": 2, "diameterMm": 25.9, "shape": "circle", "color": "#B87333", "label": "2p" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 18.0, "shape": "circle", "color": "#C0C0C0", "label": "5p" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 24.5, "shape": "circle", "color": "#C0C0C0", "label": "10p" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 21.4, "shape": "polygon", "sides": 7, "color": "#C0C0C0", "label": "20p" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 27.3, "shape": "polygon", "sides": 7, "color": "#C0C0C0", "label": "50p" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.43, "shape": "polygon", "sides": 12, "color": "#C9B037", "label": "£1" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 28.4, "shape": "circle", "color": "#D4AF37", "label": "£2" }
+      ]
+    },
+    {
+      "code": "JPY",
+      "name": "Japanese Yen",
+      "flag": "jp",
+      "minorDigits": 0,
+      "denominations": [
+        { "kind": "note", "minorValue": 1000, "widthMm": 150, "heightMm": 76, "color": "#3B5998", "label": "¥1000" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 154, "heightMm": 76, "color": "#2E7D32", "label": "¥2000" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 156, "heightMm": 76, "color": "#7B3F9E", "label": "¥5000" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 160, "heightMm": 76, "color": "#8B5A2B", "label": "¥10000" },
+        { "kind": "coin", "minorValue": 1, "diameterMm": 20.0, "shape": "circle", "color": "#C0C0C0", "label": "¥1" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 22.0, "shape": "circle", "color": "#C9B037", "label": "¥5" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 23.5, "shape": "circle", "color": "#B87333", "label": "¥10" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 21.0, "shape": "circle", "color": "#C0C0C0", "label": "¥50" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 22.6, "shape": "circle", "color": "#C0C0C0", "label": "¥100" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 26.5, "shape": "circle", "color": "#C9A227", "label": "¥500" }
+      ]
+    },
+    {
+      "code": "NOK",
+      "name": "Norwegian Krone",
+      "flag": "no",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 5000, "widthMm": 125, "heightMm": 70, "color": "#3B7A9E", "label": "50 kr", "series": "2017" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 133, "heightMm": 70, "color": "#C0392B", "label": "100 kr", "series": "2017" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 141, "heightMm": 70, "color": "#2E7D32", "label": "200 kr", "series": "2017" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 149, "heightMm": 70, "color": "#4A5FA5", "label": "500 kr", "series": "2018" },
+        { "kind": "note", "minorValue": 100000, "widthMm": 157, "heightMm": 70, "color": "#D4A017", "label": "1000 kr", "series": "2019" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 21.0, "shape": "circle", "color": "#C0C0C0", "label": "1 kr" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 26.5, "shape": "circle", "color": "#C0C0C0", "label": "5 kr" },
+        { "kind": "coin", "minorValue": 1000, "diameterMm": 24.0, "shape": "circle", "color": "#C9A227", "label": "10 kr" },
+        { "kind": "coin", "minorValue": 2000, "diameterMm": 27.5, "shape": "circle", "color": "#C9A227", "label": "20 kr" }
+      ]
+    },
+    {
+      "code": "SEK",
+      "name": "Swedish Krona",
+      "flag": "se",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 2000, "widthMm": 120, "heightMm": 66, "color": "#8E8E8E", "label": "20 kr", "series": "2015" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 126, "heightMm": 66, "color": "#E07A28", "label": "50 kr", "series": "2015" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 132, "heightMm": 66, "color": "#1F5FA8", "label": "100 kr", "series": "2015" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 138, "heightMm": 66, "color": "#2E7D32", "label": "200 kr", "series": "2015" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 144, "heightMm": 66, "color": "#8B4B8B", "label": "500 kr", "series": "2016" },
+        { "kind": "note", "minorValue": 100000, "widthMm": 150, "heightMm": 66, "color": "#7B2D5E", "label": "1000 kr", "series": "2016" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 19.5, "shape": "circle", "color": "#C0C0C0", "label": "1 kr" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 25.5, "shape": "circle", "color": "#C0C0C0", "label": "2 kr" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 28.5, "shape": "circle", "color": "#C9B037", "label": "5 kr" }
+      ]
+    },
+    {
+      "code": "DKK",
+      "name": "Danish Krone",
+      "flag": "dk",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 5000, "widthMm": 115, "heightMm": 70, "color": "#3B9C9C", "label": "50 kr", "series": "2009-2011" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 121, "heightMm": 70, "color": "#D2691E", "label": "100 kr", "series": "2009-2011" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 127, "heightMm": 70, "color": "#3C8C3C", "label": "200 kr", "series": "2009-2011" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 133, "heightMm": 70, "color": "#4A5FA5", "label": "500 kr", "series": "2009-2011" },
+        { "kind": "note", "minorValue": 100000, "widthMm": 139, "heightMm": 70, "color": "#B03060", "label": "1000 kr", "series": "2009-2011" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 17.5, "shape": "circle", "color": "#C9A227", "label": "50 øre" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 20.25, "shape": "circle", "color": "#C0C0C0", "label": "1 kr" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 24.5, "shape": "circle", "color": "#C0C0C0", "label": "2 kr" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 28.5, "shape": "circle", "color": "#C0C0C0", "label": "5 kr" },
+        { "kind": "coin", "minorValue": 1000, "diameterMm": 23.35, "shape": "circle", "color": "#C9B037", "label": "10 kr" },
+        { "kind": "coin", "minorValue": 2000, "diameterMm": 27.0, "shape": "circle", "color": "#C9B037", "label": "20 kr" }
+      ]
+    },
+    {
+      "code": "CZK",
+      "name": "Czech Koruna",
+      "flag": "cz",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 10000, "widthMm": 133, "heightMm": 66, "color": "#7A4B2A", "label": "100 Kč" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 137, "heightMm": 69, "color": "#2E7D6B", "label": "200 Kč" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 141, "heightMm": 72, "color": "#A31E22", "label": "500 Kč" },
+        { "kind": "note", "minorValue": 100000, "widthMm": 145, "heightMm": 75, "color": "#1F4E8C", "label": "1000 Kč" },
+        { "kind": "note", "minorValue": 200000, "widthMm": 149, "heightMm": 78, "color": "#C9A227", "label": "2000 Kč" },
+        { "kind": "note", "minorValue": 500000, "widthMm": 153, "heightMm": 81, "color": "#4B5A45", "label": "5000 Kč" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 20.0, "shape": "circle", "color": "#C0C0C0", "label": "1 Kč" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 21.5, "shape": "circle", "color": "#C0C0C0", "label": "2 Kč" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 23.0, "shape": "circle", "color": "#C0C0C0", "label": "5 Kč" },
+        { "kind": "coin", "minorValue": 1000, "diameterMm": 24.5, "shape": "circle", "color": "#C9A227", "label": "10 Kč" },
+        { "kind": "coin", "minorValue": 2000, "diameterMm": 26.0, "shape": "circle", "color": "#D4AF37", "label": "20 Kč" },
+        { "kind": "coin", "minorValue": 5000, "diameterMm": 27.5, "shape": "circle", "color": "#D4AF37", "label": "50 Kč" }
+      ]
+    },
+    {
+      "code": "CAD",
+      "name": "Canadian Dollar",
+      "flag": "ca",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 500, "widthMm": 152.4, "heightMm": 69.85, "color": "#3B9C9C", "label": "$5", "series": "Frontier" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 152.4, "heightMm": 69.85, "color": "#6A3B82", "label": "$10", "series": "Frontier" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 152.4, "heightMm": 69.85, "color": "#2E7D32", "label": "$20", "series": "Frontier" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 152.4, "heightMm": 69.85, "color": "#A31E22", "label": "$50", "series": "Frontier" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 152.4, "heightMm": 69.85, "color": "#C2B280", "label": "$100", "series": "Frontier" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 21.2, "shape": "circle", "color": "#C0C0C0", "label": "5c" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 18.03, "shape": "circle", "color": "#C0C0C0", "label": "10c" },
+        { "kind": "coin", "minorValue": 25, "diameterMm": 23.88, "shape": "circle", "color": "#C0C0C0", "label": "25c" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 26.5, "shape": "polygon", "sides": 11, "color": "#D4AF37", "label": "$1" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 28.0, "shape": "circle", "color": "#C9B037", "label": "$2" }
+      ]
+    },
+    {
+      "code": "AUD",
+      "name": "Australian Dollar",
+      "flag": "au",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 500, "widthMm": 130, "heightMm": 65, "color": "#C48793", "label": "$5", "series": "Next Generation" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 137, "heightMm": 65, "color": "#1F6FB2", "label": "$10", "series": "Next Generation" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 144, "heightMm": 65, "color": "#D2691E", "label": "$20", "series": "Next Generation" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 151, "heightMm": 65, "color": "#D4AF37", "label": "$50", "series": "Next Generation" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 158, "heightMm": 65, "color": "#4B5A45", "label": "$100", "series": "Next Generation" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 19.41, "shape": "circle", "color": "#C0C0C0", "label": "5c" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 23.6, "shape": "circle", "color": "#C0C0C0", "label": "10c" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 28.65, "shape": "circle", "color": "#C0C0C0", "label": "20c" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 31.65, "shape": "polygon", "sides": 12, "color": "#C0C0C0", "label": "50c" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 25.0, "shape": "circle", "color": "#D4AF37", "label": "$1" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 20.5, "shape": "circle", "color": "#D4AF37", "label": "$2" }
+      ]
+    },
+    {
+      "code": "CHF",
+      "name": "Swiss Franc",
+      "flag": "ch",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 1000, "widthMm": 123, "heightMm": 74, "color": "#F2C400", "label": "10 fr", "series": "9th series" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 130, "heightMm": 74, "color": "#D0342C", "label": "20 fr", "series": "9th series" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 137, "heightMm": 74, "color": "#2E7D32", "label": "50 fr", "series": "9th series" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 144, "heightMm": 74, "color": "#1F5FA8", "label": "100 fr", "series": "9th series" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 151, "heightMm": 74, "color": "#7A4B2A", "label": "200 fr", "series": "9th series" },
+        { "kind": "note", "minorValue": 100000, "widthMm": 158, "heightMm": 74, "color": "#6A3B82", "label": "1000 fr", "series": "9th series" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 17.15, "shape": "circle", "color": "#B87333", "label": "5 rp" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 19.15, "shape": "circle", "color": "#C0C0C0", "label": "10 rp" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 21.05, "shape": "circle", "color": "#C0C0C0", "label": "20 rp" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 18.2, "shape": "circle", "color": "#C0C0C0", "label": "½ fr" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.2, "shape": "circle", "color": "#C0C0C0", "label": "1 fr" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 27.4, "shape": "circle", "color": "#C0C0C0", "label": "2 fr" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 31.45, "shape": "circle", "color": "#C0C0C0", "label": "5 fr" }
+      ]
+    },
+    {
+      "code": "CNY",
+      "name": "Chinese Yuan",
+      "flag": "cn",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 100, "widthMm": 130, "heightMm": 63, "color": "#6B8E23", "label": "¥1", "series": "5th series" },
+        { "kind": "note", "minorValue": 500, "widthMm": 135, "heightMm": 63, "color": "#8B5FBF", "label": "¥5", "series": "5th series" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 140, "heightMm": 70, "color": "#2E8B8B", "label": "¥10", "series": "5th series" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 145, "heightMm": 70, "color": "#7B5B2D", "label": "¥20", "series": "5th series" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 150, "heightMm": 70, "color": "#2E7D5A", "label": "¥50", "series": "5th series" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 155, "heightMm": 77, "color": "#B22222", "label": "¥100", "series": "5th series" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 19.0, "shape": "circle", "color": "#C0C0C0", "label": "1 jiao" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 20.5, "shape": "circle", "color": "#C9B037", "label": "5 jiao" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 25.0, "shape": "circle", "color": "#C0C0C0", "label": "¥1" }
+      ]
+    },
+    {
+      "code": "HUF",
+      "name": "Hungarian Forint",
+      "flag": "hu",
+      "minorDigits": 0,
+      "denominations": [
+        { "kind": "note", "minorValue": 500, "widthMm": 142, "heightMm": 70, "color": "#8B5A2B", "label": "500 Ft" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 146, "heightMm": 70, "color": "#1F5FA8", "label": "1000 Ft" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 150, "heightMm": 70, "color": "#D4A017", "label": "2000 Ft" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 154, "heightMm": 70, "color": "#7B3F3F", "label": "5000 Ft" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 158, "heightMm": 70, "color": "#4B6584", "label": "10000 Ft" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 162, "heightMm": 70, "color": "#C9A227", "label": "20000 Ft" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 20.5, "shape": "circle", "color": "#C0C0C0", "label": "5 Ft" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 21.0, "shape": "circle", "color": "#C9A227", "label": "10 Ft" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 22.4, "shape": "circle", "color": "#C9A227", "label": "20 Ft" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 27.4, "shape": "circle", "color": "#C0C0C0", "label": "50 Ft" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.8, "shape": "circle", "color": "#D4AF37", "label": "100 Ft" }
+      ]
+    },
+    {
+      "code": "RON",
+      "name": "Romanian Leu",
+      "flag": "ro",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 100, "widthMm": 117, "heightMm": 62, "color": "#4B8B3B", "label": "1 leu", "series": "Polymer" },
+        { "kind": "note", "minorValue": 500, "widthMm": 122, "heightMm": 62, "color": "#7B3F9E", "label": "5 lei", "series": "Polymer" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 127, "heightMm": 62, "color": "#B03030", "label": "10 lei", "series": "Polymer" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 132, "heightMm": 62, "color": "#C9A227", "label": "50 lei", "series": "Polymer" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 137, "heightMm": 67, "color": "#1F5FA8", "label": "100 lei", "series": "Polymer" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 142, "heightMm": 67, "color": "#7A6A3A", "label": "200 lei", "series": "Polymer" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 147, "heightMm": 67, "color": "#6A3B82", "label": "500 lei", "series": "Polymer" },
+        { "kind": "coin", "minorValue": 1, "diameterMm": 16.75, "shape": "circle", "color": "#B87333", "label": "1 ban" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 18.5, "shape": "circle", "color": "#B87333", "label": "5 bani" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 20.0, "shape": "circle", "color": "#C9B037", "label": "10 bani" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 23.75, "shape": "circle", "color": "#C0C0C0", "label": "50 bani" }
+      ]
+    },
+    {
+      "code": "INR",
+      "name": "Indian Rupee",
+      "flag": "in",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 1000, "widthMm": 123, "heightMm": 63, "color": "#8B5A2B", "label": "₹10", "series": "Mahatma Gandhi New" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 129, "heightMm": 63, "color": "#E8A33D", "label": "₹20", "series": "Mahatma Gandhi New" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 135, "heightMm": 66, "color": "#4FA8DA", "label": "₹50", "series": "Mahatma Gandhi New" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 142, "heightMm": 66, "color": "#9370A8", "label": "₹100", "series": "Mahatma Gandhi New" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 146, "heightMm": 66, "color": "#F2C41C", "label": "₹200", "series": "Mahatma Gandhi New" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 150, "heightMm": 66, "color": "#8C8C7A", "label": "₹500", "series": "Mahatma Gandhi New" },
+        { "kind": "note", "minorValue": 200000, "widthMm": 166, "heightMm": 66, "color": "#C2185B", "label": "₹2000", "series": "Mahatma Gandhi New", "status": "legalTenderNotIssued" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 21.93, "shape": "circle", "color": "#C0C0C0", "label": "₹1" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 25.0, "shape": "circle", "color": "#C0C0C0", "label": "₹2" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 23.0, "shape": "circle", "color": "#C0C0C0", "label": "₹5" },
+        { "kind": "coin", "minorValue": 1000, "diameterMm": 27.0, "shape": "circle", "color": "#D4AF37", "label": "₹10" }
+      ]
+    },
+    {
+      "code": "MXN",
+      "name": "Mexican Peso",
+      "flag": "mx",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 2000, "widthMm": 120, "heightMm": 65, "color": "#1F8A8A", "label": "$20", "series": "G" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 135, "heightMm": 65, "color": "#D63384", "label": "$50", "series": "G" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 135, "heightMm": 66, "color": "#B22222", "label": "$100", "series": "G" },
+        { "kind": "note", "minorValue": 20000, "widthMm": 141, "heightMm": 66, "color": "#2E7D32", "label": "$200", "series": "G" },
+        { "kind": "note", "minorValue": 50000, "widthMm": 147, "heightMm": 66, "color": "#B5651D", "label": "$500", "series": "G" },
+        { "kind": "note", "minorValue": 100000, "widthMm": 153, "heightMm": 66, "color": "#6A3B82", "label": "$1000", "series": "G" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 18.0, "shape": "circle", "color": "#C0C0C0", "label": "50c" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 21.0, "shape": "circle", "color": "#C9B037", "label": "$1" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 21.2, "shape": "circle", "color": "#C0C0C0", "label": "$2" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 25.5, "shape": "circle", "color": "#D4AF37", "label": "$5" },
+        { "kind": "coin", "minorValue": 1000, "diameterMm": 28.0, "shape": "circle", "color": "#C9B037", "label": "$10" }
+      ]
+    },
+    {
+      "code": "NZD",
+      "name": "New Zealand Dollar",
+      "flag": "nz",
+      "minorDigits": 2,
+      "denominations": [
+        { "kind": "note", "minorValue": 500, "widthMm": 135, "heightMm": 66, "color": "#E8730A", "label": "$5", "series": "Brighter Money" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 140, "heightMm": 68, "color": "#1F6FB2", "label": "$10", "series": "Brighter Money" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 145, "heightMm": 70, "color": "#2E7D32", "label": "$20", "series": "Brighter Money" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 150, "heightMm": 72, "color": "#7B3F9E", "label": "$50", "series": "Brighter Money" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 155, "heightMm": 74, "color": "#B22222", "label": "$100", "series": "Brighter Money" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 20.5, "shape": "circle", "color": "#C9B037", "label": "10c" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 21.75, "shape": "circle", "color": "#C9B037", "label": "20c" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 24.75, "shape": "circle", "color": "#C9B037", "label": "50c" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.0, "shape": "circle", "color": "#C9B037", "label": "$1" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 26.5, "shape": "circle", "color": "#C9B037", "label": "$2" }
+      ]
+    }
+  ]
+}
