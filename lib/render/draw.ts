@@ -32,6 +32,20 @@ export interface BufferView {
   bufferHeight: number;
 }
 
+/**
+ * The pan/zoom fields computeViewportView needs. A d3 `ZoomTransform` satisfies
+ * this structurally, so callers can pass one directly without draw.ts having to
+ * depend on d3-zoom (it stays a pure, DOM-free rasterizer).
+ */
+export interface ViewTransform {
+  /** Zoom scale factor. */
+  k: number;
+  /** Translation x, in CSS pixels. */
+  x: number;
+  /** Translation y, in CSS pixels. */
+  y: number;
+}
+
 export interface RenderOptions {
   /** Max buffer canvas side length, in pixels. Defaults to DEFAULT_MAX_BUFFER_PIXELS. */
   maxPixels?: number;
@@ -93,6 +107,54 @@ export function worldToBuffer(x: number, y: number, view: BufferView): [number, 
   return [(x - view.bounds.minX) * view.scale, (y - view.bounds.minY) * view.scale];
 }
 
+/**
+ * Derives a BufferView for a "detail" buffer that covers ONLY the world
+ * rectangle currently visible under `transform`, rendered at DEVICE resolution
+ * (deviceWidth x deviceHeight device pixels). Rasterizing that rectangle into a
+ * viewport-sized buffer and blitting it 1:1 gives a pixel-sharp frame when the
+ * static room buffer would be magnified (and thus blurry) - see renderViewport.
+ *
+ * The returned view maps world -> detail-buffer pixel exactly onto the on-screen
+ * device pixel that paintFrame() produces for the same world point, so hit
+ * testing / the static view stay authoritative and the detail render is purely a
+ * higher-resolution redraw of what's already on screen. Concretely, for any
+ * world x:
+ *
+ *   (x - bounds.minX) * scale
+ *     === (x - staticView.bounds.minX) * staticView.scale * k * dpr + tx * dpr
+ *
+ * which is paintFrame's device-space mapping. Pure - safe to unit test.
+ */
+export function computeViewportView(
+  staticView: BufferView,
+  transform: ViewTransform,
+  deviceWidth: number,
+  deviceHeight: number,
+  dpr: number,
+): BufferView {
+  const scale = staticView.scale * transform.k * dpr;
+  // World coordinate that lands on device pixel (0,0) (the top-left of the
+  // visible canvas), inverting paintFrame's transform then the static view.
+  const originX = (0 - transform.x) / transform.k / staticView.scale + staticView.bounds.minX;
+  const originY = (0 - transform.y) / transform.k / staticView.scale + staticView.bounds.minY;
+  const width = scale > 0 ? deviceWidth / scale : 0;
+  const height = scale > 0 ? deviceHeight / scale : 0;
+  const bounds: BufferBounds = {
+    minX: originX,
+    minY: originY,
+    maxX: originX + width,
+    maxY: originY + height,
+    width,
+    height,
+  };
+  return {
+    bounds,
+    scale,
+    bufferWidth: Math.round(deviceWidth),
+    bufferHeight: Math.round(deviceHeight),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Shared per-piece geometry helpers (used by both the rasterizer and
 // tooltip.ts's hit-testing, so the two stay in agreement).
@@ -134,6 +196,31 @@ export function pieceContainsPoint(
   const x0 = geometry.x[index];
   const y0 = geometry.y[index];
   return worldX >= x0 && worldX <= x0 + ew && worldY >= y0 && worldY <= y0 + eh;
+}
+
+/**
+ * Axis-aligned world-space bounding box of piece `index` (notes:
+ * [x, x+w] x [y, y+h]; coins: center +/- r). Used to cull pieces outside the
+ * visible rectangle when rendering a viewport detail buffer.
+ */
+export function pieceWorldBounds(result: PackResult, index: number): BufferBounds {
+  const { geometry } = result;
+  if (geometry.kind[index] === 1) {
+    const cx = geometry.x[index];
+    const cy = geometry.y[index];
+    const rr = geometry.r[index];
+    return { minX: cx - rr, minY: cy - rr, maxX: cx + rr, maxY: cy + rr, width: rr * 2, height: rr * 2 };
+  }
+  const [ew, eh] = noteEffectiveExtent(geometry.w[index], geometry.h[index], geometry.rot[index]);
+  const x0 = geometry.x[index];
+  const y0 = geometry.y[index];
+  return { minX: x0, minY: y0, maxX: x0 + ew, maxY: y0 + eh, width: ew, height: eh };
+}
+
+/** True when piece `index`'s world bounding box intersects world rect `rect`. */
+export function pieceIntersectsRect(result: PackResult, index: number, rect: BufferBounds): boolean {
+  const b = pieceWorldBounds(result, index);
+  return !(b.maxX < rect.minX || b.minX > rect.maxX || b.maxY < rect.minY || b.minY > rect.maxY);
 }
 
 // ---------------------------------------------------------------------------
@@ -273,7 +360,12 @@ function drawPieceSprite(
   }
 }
 
-/** Draws pieces [start,end) of `result`, batched by denom to minimize context state changes. */
+/**
+ * Draws pieces [start,end) of `result`, batched by denom to minimize context
+ * state changes. When `cull` (a world-space rect) is given, pieces whose world
+ * bounding box does not intersect it are skipped entirely - used by the viewport
+ * detail render so only visible pieces are rasterized.
+ */
 function drawRange(
   ctx: Canvas2DContext,
   result: PackResult,
@@ -281,6 +373,7 @@ function drawRange(
   start: number,
   end: number,
   opts: RenderOptions,
+  cull?: BufferBounds,
 ): void {
   const { geometry, denomTable } = result;
   const { kind, x, y, w, h, r, rot, denom } = geometry;
@@ -288,6 +381,7 @@ function drawRange(
 
   const groups = new Map<number, number[]>();
   for (let i = start; i < end; i++) {
+    if (cull && !pieceIntersectsRect(result, i, cull)) continue;
     const d = denom[i];
     let indices = groups.get(d);
     if (!indices) {
@@ -352,9 +446,43 @@ export function renderToBuffer(
   const ctx = getContext2D(bufferCanvas);
   if (!ctx) return view;
 
+  // The static buffer is later downscaled to screen when zoomed out; high-quality
+  // smoothing keeps that downsample crisp. (Set after resizing the canvas, which
+  // resets context state.)
+  ctx.imageSmoothingQuality = 'high';
   clearCanvas(ctx, view, opts.backgroundColor);
   drawRange(ctx, result, view, 0, result.geometry.count, opts);
   return view;
+}
+
+/**
+ * Rasterizes ONLY the world rectangle described by `viewportView` (see
+ * computeViewportView) into `detailCanvas` at device resolution, culling pieces
+ * outside the visible rect. Blitting the result 1:1 over the visible canvas
+ * yields a pixel-sharp frame that would otherwise be a magnified (blurry) copy
+ * of the static room buffer. Reuses the same drawRange path (and thus
+ * drawPieceSprite / drawPieceDetail) as the static render, so sprites, detail
+ * labels and the denom-batched fill fast path all apply unchanged - they just
+ * draw at the higher `viewportView.scale`. Returns the view used.
+ */
+export function renderViewport(
+  result: PackResult,
+  detailCanvas: HTMLCanvasElement | OffscreenCanvas,
+  viewportView: BufferView,
+  opts: RenderOptions = {},
+): BufferView {
+  detailCanvas.width = viewportView.bufferWidth;
+  detailCanvas.height = viewportView.bufferHeight;
+
+  const ctx = getContext2D(detailCanvas);
+  if (!ctx) return viewportView;
+
+  // Sprite blits shrink a large source image down to the on-screen piece size;
+  // high-quality smoothing keeps that downsample crisp.
+  ctx.imageSmoothingQuality = 'high';
+  clearCanvas(ctx, viewportView, opts.backgroundColor);
+  drawRange(ctx, result, viewportView, 0, result.geometry.count, opts, viewportView.bounds);
+  return viewportView;
 }
 
 /**
@@ -386,6 +514,8 @@ export function renderToBufferChunked(
     };
   }
 
+  // High-quality smoothing so the static buffer downsamples crisply on screen.
+  ctx.imageSmoothingQuality = 'high';
   clearCanvas(ctx, view, opts.backgroundColor);
 
   const chunkSize = Math.max(1, opts.chunkSize ?? DEFAULT_CHUNK_SIZE);

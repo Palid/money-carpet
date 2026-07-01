@@ -8,7 +8,9 @@ import type { Quadtree } from 'd3-quadtree';
 import type { PackResult } from '@/lib/packer/types';
 import {
   computeBufferView,
+  computeViewportView,
   renderToBufferChunked,
+  renderViewport,
   type BufferView,
   type ChunkedRenderHandle,
 } from '@/lib/render/draw';
@@ -33,6 +35,22 @@ interface TooltipState {
   screenY: number;
   info: PickResult;
 }
+
+/** Latest inputs a sharp (viewport) render reads, kept in a ref so the once-attached zoom handler stays stable. */
+interface SharpConfig {
+  result: PackResult;
+  detail: boolean;
+  sprites: SpriteMap | undefined;
+}
+
+/** Debounce before a sharp re-render fires while the user is still interacting. */
+const SHARP_SETTLE_MS = 140;
+/**
+ * When transform.k * dpr exceeds this, the static room buffer is being magnified
+ * past its own resolution, so a device-resolution viewport re-render is worth it.
+ * At or below it the static buffer already meets/exceeds the screen.
+ */
+const SHARP_MIN_DEVICE_SCALE = 1 + 1e-3;
 
 /** Scale+center the buffer so it fits entirely inside the visible CSS box. */
 function computeFitTransform(view: BufferView, cssWidth: number, cssHeight: number): ZoomTransform {
@@ -67,6 +85,15 @@ export function PackingCanvas({ result, detail = false, useImages = false, class
   const hasFitRef = React.useRef(false);
   const prevResultRef = React.useRef<PackResult | null>(null);
 
+  // --- Sharp "settle" render: one reused viewport-sized detail canvas, plus a
+  // monotonically increasing token so a newer zoom event supersedes any pending
+  // or in-flight sharp render (stale tokens are ignored). ---
+  const detailCanvasRef = React.useRef<HTMLCanvasElement | OffscreenCanvas | null>(null);
+  const sharpConfigRef = React.useRef<SharpConfig | null>(null);
+  const sharpTokenRef = React.useRef(0);
+  const sharpTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sharpRafRef = React.useRef<number | null>(null);
+
   const [tooltip, setTooltip] = React.useState<TooltipState | null>(null);
   const [sprites, setSprites] = React.useState<SpriteMap | null>(null);
 
@@ -79,9 +106,91 @@ export function PackingCanvas({ result, detail = false, useImages = false, class
       if (!canvas || !buffer) return;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
+      // Crisp downsample when the buffer is larger than the on-screen area
+      // (zoomed out); harmless when magnifying (the fast preview).
+      ctx.imageSmoothingQuality = 'high';
       paintFrame(ctx, buffer, transformRef.current, dprRef.current);
     });
   }, []);
+
+  // Cancels any pending/in-flight sharp render (and invalidates in-flight ones
+  // via the token). Called when zooming back out or on teardown.
+  const cancelSharpRender = React.useCallback(() => {
+    sharpTokenRef.current += 1;
+    if (sharpTimerRef.current !== null) {
+      clearTimeout(sharpTimerRef.current);
+      sharpTimerRef.current = null;
+    }
+    if (sharpRafRef.current !== null) {
+      cancelAnimationFrame(sharpRafRef.current);
+      sharpRafRef.current = null;
+    }
+  }, []);
+
+  // Rasterizes the visible world rect at device resolution into the reused
+  // detail canvas and blits it 1:1 over the visible canvas. Runs inside a rAF so
+  // it lands AFTER the fast static paint scheduled for the same event. Bails
+  // (leaving the already-correct static frame) on any missing input, a 0-size
+  // canvas, an empty result, or if superseded by a newer token.
+  const performSharpRender = React.useCallback((token: number) => {
+    if (sharpRafRef.current !== null) cancelAnimationFrame(sharpRafRef.current);
+    sharpRafRef.current = requestAnimationFrame(() => {
+      sharpRafRef.current = null;
+      if (token !== sharpTokenRef.current) return; // superseded
+
+      const cfg = sharpConfigRef.current;
+      const canvas = canvasRef.current;
+      const staticView = viewRef.current;
+      const detailCanvas = detailCanvasRef.current;
+      if (!cfg || !canvas || !staticView || !detailCanvas) return;
+
+      const transform = transformRef.current;
+      const dpr = dprRef.current;
+      if (transform.k * dpr <= SHARP_MIN_DEVICE_SCALE) return; // zoomed out; static buffer suffices
+
+      const deviceWidth = canvas.width;
+      const deviceHeight = canvas.height;
+      if (deviceWidth <= 0 || deviceHeight <= 0) return;
+      if (cfg.result.geometry.count === 0) return;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      try {
+        const viewportView = computeViewportView(staticView, transform, deviceWidth, deviceHeight, dpr);
+        if (viewportView.bufferWidth <= 0 || viewportView.bufferHeight <= 0) return;
+        renderViewport(cfg.result, detailCanvas, viewportView, { detail: cfg.detail, sprites: cfg.sprites });
+        if (token !== sharpTokenRef.current) return; // a newer event landed while rendering
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(detailCanvas as CanvasImageSource, 0, 0);
+      } catch {
+        // Sharp path unavailable/failed - the fast static frame already painted
+        // this transform, so leave it as-is (no visual regression).
+      }
+    });
+  }, []);
+
+  // (Re)schedules a sharp render, superseding any older one via a fresh token.
+  // `immediate` (the d3 'end' event) skips the settle debounce.
+  const requestSharpRender = React.useCallback(
+    (immediate: boolean) => {
+      const token = ++sharpTokenRef.current;
+      if (sharpTimerRef.current !== null) {
+        clearTimeout(sharpTimerRef.current);
+        sharpTimerRef.current = null;
+      }
+      if (immediate) {
+        performSharpRender(token);
+      } else {
+        sharpTimerRef.current = setTimeout(() => {
+          sharpTimerRef.current = null;
+          performSharpRender(token);
+        }, SHARP_SETTLE_MS);
+      }
+    },
+    [performSharpRender],
+  );
 
   // Fits + clamps the zoom behavior to the current buffer/container size, and
   // (once) sets an initial transform that frames the whole room.
@@ -124,25 +233,56 @@ export function PackingCanvas({ result, detail = false, useImages = false, class
 
     applyFitIfReady();
     schedulePaint();
-  }, [applyFitIfReady, schedulePaint]);
+    // The visible canvas just resized; refresh the sharp frame if zoomed in.
+    if (transformRef.current.k * dprRef.current > SHARP_MIN_DEVICE_SCALE) {
+      requestSharpRender(false);
+    }
+  }, [applyFitIfReady, schedulePaint, requestSharpRender]);
 
-  // Attach the d3-zoom behavior to the overlay once on mount.
+  // Attach the d3-zoom behavior to the overlay once on mount, and allocate the
+  // one reused (viewport-sized, NOT room-sized) detail canvas for sharp renders.
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const overlay = overlayRef.current;
     if (!overlay) return;
 
-    const behavior = attachZoom<HTMLDivElement, unknown>(select<HTMLDivElement, unknown>(overlay), (transform) => {
-      transformRef.current = transform;
-      schedulePaint();
-    });
+    detailCanvasRef.current =
+      typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : document.createElement('canvas');
+
+    const behavior = attachZoom<HTMLDivElement, unknown>(
+      select<HTMLDivElement, unknown>(overlay),
+      (transform, event) => {
+        transformRef.current = transform;
+        // Fast, responsive preview on every event: blit the static buffer.
+        schedulePaint();
+        // Once magnified past the static buffer's resolution, schedule a sharp
+        // device-resolution re-render (debounced, plus immediately on 'end').
+        // When zoomed out the static buffer already suffices - drop any pending.
+        if (transform.k * dprRef.current > SHARP_MIN_DEVICE_SCALE) {
+          requestSharpRender(event.type === 'end');
+        } else {
+          cancelSharpRender();
+        }
+      },
+    );
     zoomBehaviorRef.current = behavior;
 
     return () => {
       select(overlay).on('.zoom', null);
       zoomBehaviorRef.current = null;
+      cancelSharpRender();
+      detailCanvasRef.current = null;
     };
-  }, [schedulePaint]);
+  }, [schedulePaint, requestSharpRender, cancelSharpRender]);
+
+  // Keep the sharp-render inputs current for the once-attached zoom handler.
+  React.useEffect(() => {
+    sharpConfigRef.current = {
+      result,
+      detail,
+      sprites: useImages ? sprites ?? undefined : undefined,
+    };
+  }, [result, detail, useImages, sprites]);
 
   // Keep the visible canvas sized (DPR-aware) to its container.
   React.useEffect(() => {
@@ -200,6 +340,11 @@ export function PackingCanvas({ result, detail = false, useImages = false, class
         viewRef.current = computeBufferView(result, maxBufferPixels);
         applyFitIfReady();
         schedulePaint();
+        // The static repaint above would cover any existing sharp frame; if we're
+        // still zoomed in (e.g. sprites just finished loading), re-sharpen.
+        if (transformRef.current.k * dprRef.current > SHARP_MIN_DEVICE_SCALE) {
+          requestSharpRender(false);
+        }
       },
     );
     chunkedHandleRef.current = handle;
@@ -207,7 +352,7 @@ export function PackingCanvas({ result, detail = false, useImages = false, class
     return () => {
       handle.cancel();
     };
-  }, [result, detail, useImages, sprites, maxBufferPixels, applyFitIfReady, schedulePaint]);
+  }, [result, detail, useImages, sprites, maxBufferPixels, applyFitIfReady, schedulePaint, requestSharpRender]);
 
   const handleMouseMove = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
