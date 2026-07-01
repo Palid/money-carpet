@@ -15,6 +15,7 @@ const noteSpecSchema = z.object({
   series: z.string().optional(),
   sourceUrl: z.string().optional(),
   status: legalStatusSchema.optional(),
+  image: z.string().optional(),
 });
 
 const coinSpecSchema = z.object({
@@ -28,6 +29,7 @@ const coinSpecSchema = z.object({
   series: z.string().optional(),
   sourceUrl: z.string().optional(),
   status: legalStatusSchema.optional(),
+  image: z.string().optional(),
 });
 
 const denominationSchema = z.discriminatedUnion('kind', [

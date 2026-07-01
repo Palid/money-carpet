@@ -5,7 +5,8 @@
 // Coordinates in `result.geometry` are fixed-point i32 in 1/100mm (FP, see
 // lib/config/constants.ts). Notes: (x,y) is TOP-LEFT; coins: (x,y) is CENTER.
 import { UNITS_PER_M } from '@/lib/config/constants';
-import type { DenomRef, PackResult } from '@/lib/packer/types';
+import type { DenomRef, PackGeometry, PackResult } from '@/lib/packer/types';
+import type { SpriteMap } from './sprites';
 
 /** Either a real <canvas> 2D context or an OffscreenCanvas 2D context. */
 export type Canvas2DContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
@@ -36,6 +37,12 @@ export interface RenderOptions {
   maxPixels?: number;
   /** Draw denom label text + sheen gradient. Off (flat fill only) when dense/zoomed-out. */
   detail?: boolean;
+  /**
+   * denomTable index -> official currency image. When a denom has an entry the
+   * renderer blits the image (clipped to the piece shape) instead of the flat
+   * fill; denoms with no entry keep the flat fill + detail. See sprites.ts.
+   */
+  sprites?: SpriteMap;
   backgroundColor?: string;
   /** Pieces drawn per animation frame in renderToBufferChunked. */
   chunkSize?: number;
@@ -214,6 +221,58 @@ function drawPieceDetail(
   }
 }
 
+/**
+ * Blits one denomination's official image into a single piece, clipped to the
+ * piece's shape. Notes clip to their rounded rect; a note placed rotated
+ * (rot===1) has its landscape image turned 90° so the design fills the
+ * as-placed portrait footprint without distortion. Coins clip to their circle.
+ */
+function drawPieceSprite(
+  ctx: Canvas2DContext,
+  geometry: PackGeometry,
+  view: BufferView,
+  index: number,
+  img: CanvasImageSource,
+): void {
+  const { scale, bounds } = view;
+  if (geometry.kind[index] === 0) {
+    const [ew, eh] = noteEffectiveExtent(
+      geometry.w[index],
+      geometry.h[index],
+      geometry.rot[index],
+    );
+    const px = (geometry.x[index] - bounds.minX) * scale;
+    const py = (geometry.y[index] - bounds.minY) * scale;
+    const ww = ew * scale;
+    const hh = eh * scale;
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(px, py, ww, hh, Math.min(ww, hh) * 0.12);
+    ctx.clip();
+    if (geometry.rot[index] === 1) {
+      // Turn the landscape image 90° about the footprint center. In the rotated
+      // frame the image is drawn hh wide x ww tall so it maps back to a ww x hh
+      // screen rect (see the transform math in the module header).
+      ctx.translate(px + ww / 2, py + hh / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(img, -hh / 2, -ww / 2, hh, ww);
+    } else {
+      ctx.drawImage(img, px, py, ww, hh);
+    }
+    ctx.restore();
+  } else {
+    const cx = (geometry.x[index] - bounds.minX) * scale;
+    const cy = (geometry.y[index] - bounds.minY) * scale;
+    const radius = geometry.r[index] * scale;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(img, cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx.restore();
+  }
+}
+
 /** Draws pieces [start,end) of `result`, batched by denom to minimize context state changes. */
 function drawRange(
   ctx: Canvas2DContext,
@@ -241,6 +300,16 @@ function drawRange(
   for (const [denomIdx, indices] of groups) {
     const spec = denomTable[denomIdx];
     if (!spec) continue;
+
+    // Official image available for this denom -> blit it per piece (clipped to
+    // shape) and skip the flat fill + detail label entirely.
+    const sprite = opts.sprites?.get(denomIdx);
+    if (sprite) {
+      for (const i of indices) {
+        drawPieceSprite(ctx, geometry, view, i, sprite);
+      }
+      continue;
+    }
 
     const path = new Path2D();
     for (const i of indices) {

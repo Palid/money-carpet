@@ -53,19 +53,19 @@
       "flag": "us",
       "minorDigits": 2,
       "denominations": [
-        { "kind": "note", "minorValue": 100, "widthMm": 156, "heightMm": 66.3, "color": "#85BB65", "label": "$1" },
-        { "kind": "note", "minorValue": 200, "widthMm": 156, "heightMm": 66.3, "color": "#7A9E7E", "label": "$2" },
-        { "kind": "note", "minorValue": 500, "widthMm": 156, "heightMm": 66.3, "color": "#C9A0DC", "label": "$5" },
-        { "kind": "note", "minorValue": 1000, "widthMm": 156, "heightMm": 66.3, "color": "#F4A460", "label": "$10" },
-        { "kind": "note", "minorValue": 2000, "widthMm": 156, "heightMm": 66.3, "color": "#D9E4AA", "label": "$20" },
-        { "kind": "note", "minorValue": 5000, "widthMm": 156, "heightMm": 66.3, "color": "#E8B4B8", "label": "$50" },
-        { "kind": "note", "minorValue": 10000, "widthMm": 156, "heightMm": 66.3, "color": "#7DB89D", "label": "$100" },
-        { "kind": "coin", "minorValue": 1, "diameterMm": 19.05, "shape": "circle", "color": "#B87333", "label": "1c" },
-        { "kind": "coin", "minorValue": 5, "diameterMm": 21.21, "shape": "circle", "color": "#C0C0C0", "label": "5c" },
-        { "kind": "coin", "minorValue": 10, "diameterMm": 17.91, "shape": "circle", "color": "#C0C0C0", "label": "10c" },
-        { "kind": "coin", "minorValue": 25, "diameterMm": 24.26, "shape": "circle", "color": "#C0C0C0", "label": "25c" },
-        { "kind": "coin", "minorValue": 50, "diameterMm": 30.61, "shape": "circle", "color": "#C0C0C0", "label": "50c" },
-        { "kind": "coin", "minorValue": 100, "diameterMm": 26.49, "shape": "circle", "color": "#D4AF37", "label": "$1" }
+        { "kind": "note", "minorValue": 100, "widthMm": 156, "heightMm": 66.3, "color": "#85BB65", "label": "$1", "image": "/currency/usd/note-1.jpg" },
+        { "kind": "note", "minorValue": 200, "widthMm": 156, "heightMm": 66.3, "color": "#7A9E7E", "label": "$2", "image": "/currency/usd/note-2.jpg" },
+        { "kind": "note", "minorValue": 500, "widthMm": 156, "heightMm": 66.3, "color": "#C9A0DC", "label": "$5", "image": "/currency/usd/note-5.jpg" },
+        { "kind": "note", "minorValue": 1000, "widthMm": 156, "heightMm": 66.3, "color": "#F4A460", "label": "$10", "image": "/currency/usd/note-10.jpg" },
+        { "kind": "note", "minorValue": 2000, "widthMm": 156, "heightMm": 66.3, "color": "#D9E4AA", "label": "$20", "image": "/currency/usd/note-20.jpg" },
+        { "kind": "note", "minorValue": 5000, "widthMm": 156, "heightMm": 66.3, "color": "#E8B4B8", "label": "$50", "image": "/currency/usd/note-50.jpg" },
+        { "kind": "note", "minorValue": 10000, "widthMm": 156, "heightMm": 66.3, "color": "#7DB89D", "label": "$100", "image": "/currency/usd/note-100.jpg" },
+        { "kind": "coin", "minorValue": 1, "diameterMm": 19.05, "shape": "circle", "color": "#B87333", "label": "1c", "image": "/currency/usd/coin-1c.png" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 21.21, "shape": "circle", "color": "#C0C0C0", "label": "5c", "image": "/currency/usd/coin-5c.png" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 17.91, "shape": "circle", "color": "#C0C0C0", "label": "10c", "image": "/currency/usd/coin-10c.png" },
+        { "kind": "coin", "minorValue": 25, "diameterMm": 24.26, "shape": "circle", "color": "#C0C0C0", "label": "25c", "image": "/currency/usd/coin-25c.png" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 30.61, "shape": "circle", "color": "#C0C0C0", "label": "50c", "image": "/currency/usd/coin-50c.png" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 26.49, "shape": "circle", "color": "#D4AF37", "label": "$1", "image": "/currency/usd/coin-100c.png" }
       ]
     },
     {

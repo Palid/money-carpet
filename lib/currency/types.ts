@@ -12,6 +12,12 @@ export interface NoteSpec {
   series?: string;
   sourceUrl?: string;
   status?: LegalStatus; // default 'circulating'
+  /**
+   * Optional path (under /public) to an official note image, e.g.
+   * '/currency/usd/note-100.jpg'. When present and image rendering is on, the
+   * renderer draws this instead of the flat `color` fill. Absent -> flat fill.
+   */
+  image?: string;
 }
 export interface CoinSpec {
   kind: 'coin';
@@ -24,6 +30,8 @@ export interface CoinSpec {
   series?: string;
   sourceUrl?: string;
   status?: LegalStatus;
+  /** Optional path (under /public) to an official coin image; see NoteSpec.image. */
+  image?: string;
 }
 export type Denomination = NoteSpec | CoinSpec;
 export interface Currency {

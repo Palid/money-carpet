@@ -40,6 +40,7 @@ export function Dashboard() {
   const excludeNonIssued = useStore((s) => s.excludeNonIssued);
   const primaryDenom = useStore((s) => s.primaryDenom);
   const onlyPrimary = useStore((s) => s.onlyPrimary);
+  const useImages = useStore((s) => s.useImages);
   const rates = useStore((s) => s.rates);
   const result = useStore((s) => s.result);
   const status = useStore((s) => s.status);
@@ -51,6 +52,7 @@ export function Dashboard() {
   const setExcludeNonIssued = useStore((s) => s.setExcludeNonIssued);
   const setPrimaryDenom = useStore((s) => s.setPrimaryDenom);
   const setOnlyPrimary = useStore((s) => s.setOnlyPrimary);
+  const setUseImages = useStore((s) => s.setUseImages);
 
   const detail = result ? result.geometry.count <= DETAIL_PIECE_LIMIT : false;
 
@@ -77,22 +79,38 @@ export function Dashboard() {
             <RoomSlider areaTenths={areaTenths} onChange={setAreaTenths} />
           </div>
         </div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <ModeButtons mode={mode} onModeChange={setMode} />
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-            <input
-              type="checkbox"
-              checked={excludeNonIssued}
-              onChange={(e) => setExcludeNonIssued(e.target.checked)}
-              className="h-4 w-4 cursor-pointer rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            />
-            <span>
-              Exclude flagged notes
-              <span className="ml-1 text-muted-foreground">
-                (&euro;500, &#8377;2000 &mdash; legal tender, not issued)
+          <div className="flex flex-col gap-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={excludeNonIssued}
+                onChange={(e) => setExcludeNonIssued(e.target.checked)}
+                className="h-4 w-4 cursor-pointer rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+              <span>
+                Exclude flagged notes
+                <span className="ml-1 text-muted-foreground">
+                  (&euro;500, &#8377;2000 &mdash; legal tender, not issued)
+                </span>
               </span>
-            </span>
-          </label>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={useImages}
+                onChange={(e) => setUseImages(e.target.checked)}
+                className="h-4 w-4 cursor-pointer rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+              <span>
+                Official currency images
+                <span className="ml-1 text-muted-foreground">
+                  (US dollar only &mdash; other currencies use color)
+                </span>
+              </span>
+            </label>
+          </div>
         </div>
       </section>
 
@@ -131,7 +149,7 @@ export function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="relative min-h-[420px] overflow-hidden rounded-lg border border-border bg-card lg:aspect-square lg:min-h-0">
           {result ? (
-            <PackingCanvas result={result} detail={detail} />
+            <PackingCanvas result={result} detail={detail} useImages={useImages && detail} />
           ) : (
             <div className="flex h-full w-full items-center justify-center p-8 text-center text-sm text-muted-foreground">
               {status === 'loading'
@@ -202,6 +220,15 @@ export function Dashboard() {
                 </span>{' '}
                 Non-round coins are packed as circles using their across-corners
                 diameter (&#8960;), so they take slightly more room than reality.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">
+                  Official images &mdash; US dollar only.
+                </span>{' '}
+                With &ldquo;Official currency images&rdquo; on, US banknotes and
+                coins are drawn from public-domain U.S. Government scans
+                (Wikimedia Commons); every other currency falls back to flat
+                color tiles.
               </li>
               <li>
                 <span className="font-medium text-foreground">

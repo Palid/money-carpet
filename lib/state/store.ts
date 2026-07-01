@@ -21,6 +21,12 @@ export interface AppData {
   primaryDenom: number | null;
   /** When true (and primaryDenom set), pack ONLY that denomination. */
   onlyPrimary: boolean;
+  /**
+   * Render official currency images instead of flat color fills. Pure display
+   * preference — deliberately NOT part of the recompute intent (packing is
+   * identical either way), so toggling it never re-runs the packer.
+   */
+  useImages: boolean;
 
   rates: RatesResponse | null;
 
@@ -36,6 +42,7 @@ export interface AppState extends AppData {
   setExcludeNonIssued: (b: boolean) => void;
   setPrimaryDenom: (idx: number | null) => void;
   setOnlyPrimary: (b: boolean) => void;
+  setUseImages: (b: boolean) => void;
   setRates: (r: RatesResponse) => void;
   setResult: (r: PackResult) => void;
   setStatus: (s: Status, message?: string | null) => void;
@@ -54,6 +61,7 @@ export const initialAppData: AppData = {
   excludeNonIssued: true,
   primaryDenom: null,
   onlyPrimary: false,
+  useImages: false,
   rates: null,
   result: null,
   status: 'idle',
@@ -75,6 +83,7 @@ export const store = createStore<AppState>((set) => ({
   setPrimaryDenom: (idx) =>
     set(idx === null ? { primaryDenom: null, onlyPrimary: false } : { primaryDenom: idx }),
   setOnlyPrimary: (b) => set({ onlyPrimary: b }),
+  setUseImages: (b) => set({ useImages: b }),
   setRates: (r) => set({ rates: r }),
   setResult: (r) => set({ result: r }),
   setStatus: (s, message = null) => set({ status: s, errorMessage: message }),

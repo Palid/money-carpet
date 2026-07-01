@@ -61,6 +61,7 @@ function buildDenomTable(currencyCode: string, minorDigits: number, eligible: De
     kind: d.kind,
     minorValue: d.minorValue,
     minorDigits,
+    image: d.image,
   }));
 }
 

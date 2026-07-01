@@ -9,6 +9,8 @@ export interface DenomRef {
   kind: PieceKind;
   minorValue: number;
   minorDigits: number;
+  /** Optional /public path to an official note/coin image; used by the sprite renderer. */
+  image?: string;
 }
 
 // All coordinates are fixed-point integers in 1/100 mm (see FP).

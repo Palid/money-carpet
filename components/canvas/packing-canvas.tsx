@@ -14,12 +14,15 @@ import {
 } from '@/lib/render/draw';
 import { attachZoom, paintFrame, screenToWorld } from '@/lib/render/zoom';
 import { buildQuadtree, pick, type PickResult } from '@/lib/render/tooltip';
+import { loadSprites, type SpriteMap } from '@/lib/render/sprites';
 import { cn } from '@/lib/utils';
 
 export interface PackingCanvasProps {
   result: PackResult;
   /** Draw denom labels + sheen when true; caller decides based on zoom level / sparsity. */
   detail?: boolean;
+  /** Blit official currency images (where available) instead of flat fills. */
+  useImages?: boolean;
   className?: string;
   /** Max offscreen buffer side in device pixels (perf/memory budget). Defaults to draw.ts's default. */
   maxBufferPixels?: number;
@@ -47,7 +50,7 @@ function computeFitTransform(view: BufferView, cssWidth: number, cssHeight: numb
  * buffer (chunked across rAFs so the first draw never janks), then pans/zooms
  * via d3-zoom by blitting that buffer - never re-tessellating on interaction.
  */
-export function PackingCanvas({ result, detail = false, className, maxBufferPixels }: PackingCanvasProps) {
+export function PackingCanvas({ result, detail = false, useImages = false, className, maxBufferPixels }: PackingCanvasProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const overlayRef = React.useRef<HTMLDivElement | null>(null);
@@ -62,8 +65,10 @@ export function PackingCanvas({ result, detail = false, className, maxBufferPixe
   const cssSizeRef = React.useRef({ width: 0, height: 0 });
   const chunkedHandleRef = React.useRef<ChunkedRenderHandle | null>(null);
   const hasFitRef = React.useRef(false);
+  const prevResultRef = React.useRef<PackResult | null>(null);
 
   const [tooltip, setTooltip] = React.useState<TooltipState | null>(null);
+  const [sprites, setSprites] = React.useState<SpriteMap | null>(null);
 
   const schedulePaint = React.useCallback(() => {
     if (rafRef.current !== null) return;
@@ -151,13 +156,34 @@ export function PackingCanvas({ result, detail = false, className, maxBufferPixe
     return () => observer.disconnect();
   }, [resizeCanvas]);
 
-  // Rebuild the offscreen buffer + quadtree whenever the result (or detail) changes.
+  // Load official currency images when enabled; clear them when disabled. The
+  // packing itself is unaffected — this only changes what the rasterizer blits.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!useImages) {
+      setSprites(null);
+      return;
+    }
+    const controller = new AbortController();
+    loadSprites(result, controller.signal).then((map) => {
+      if (!controller.signal.aborted) setSprites(map);
+    });
+    return () => controller.abort();
+  }, [useImages, result]);
+
+  // Rebuild the offscreen buffer + quadtree whenever the result, detail, or the
+  // loaded sprites change. Re-framing (fit) only resets on a genuinely new
+  // result, so toggling images or having them finish loading preserves the
+  // user's current pan/zoom.
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
 
     chunkedHandleRef.current?.cancel();
-    hasFitRef.current = false;
-    setTooltip(null);
+    if (prevResultRef.current !== result) {
+      prevResultRef.current = result;
+      hasFitRef.current = false;
+      setTooltip(null);
+    }
 
     const buffer: HTMLCanvasElement | OffscreenCanvas =
       typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : document.createElement('canvas');
@@ -165,17 +191,23 @@ export function PackingCanvas({ result, detail = false, className, maxBufferPixe
     quadtreeRef.current = buildQuadtree(result);
     viewRef.current = computeBufferView(result, maxBufferPixels);
 
-    const handle = renderToBufferChunked(result, buffer, { detail, maxPixels: maxBufferPixels }, () => {
-      viewRef.current = computeBufferView(result, maxBufferPixels);
-      applyFitIfReady();
-      schedulePaint();
-    });
+    const spriteMap = useImages ? sprites ?? undefined : undefined;
+    const handle = renderToBufferChunked(
+      result,
+      buffer,
+      { detail, sprites: spriteMap, maxPixels: maxBufferPixels },
+      () => {
+        viewRef.current = computeBufferView(result, maxBufferPixels);
+        applyFitIfReady();
+        schedulePaint();
+      },
+    );
     chunkedHandleRef.current = handle;
 
     return () => {
       handle.cancel();
     };
-  }, [result, detail, maxBufferPixels, applyFitIfReady, schedulePaint]);
+  }, [result, detail, useImages, sprites, maxBufferPixels, applyFitIfReady, schedulePaint]);
 
   const handleMouseMove = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
