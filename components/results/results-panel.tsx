@@ -98,7 +98,12 @@ export function ResultsPanel({
   const piecesPerM2 =
     result.roomAreaM2 > 0 ? result.pieceCount / result.roomAreaM2 : 0;
 
-  const rows = [...result.perDenom].sort((a, b) => b.count - a.count);
+  // Only show denominations that were actually placed; the packer emits a
+  // perDenom entry for every eligible denomination (many with count 0), which
+  // otherwise clutters the table with empty "PLN 0.00" rows.
+  const rows = [...result.perDenom]
+    .filter((s) => s.count > 0)
+    .sort((a, b) => b.count - a.count);
 
   return (
     <div className="flex flex-col gap-5 rounded-lg border border-border bg-card p-6 text-card-foreground">
