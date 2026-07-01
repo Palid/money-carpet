@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useStore, retryGpu } from '@/lib/state';
 import {
   CountryCombobox,
+  DenomPicker,
   ModeButtons,
   RoomSlider,
 } from '@/components/controls';
@@ -37,6 +38,8 @@ export function Dashboard() {
   const areaTenths = useStore((s) => s.areaTenths);
   const mode = useStore((s) => s.mode);
   const excludeNonIssued = useStore((s) => s.excludeNonIssued);
+  const primaryDenom = useStore((s) => s.primaryDenom);
+  const onlyPrimary = useStore((s) => s.onlyPrimary);
   const rates = useStore((s) => s.rates);
   const result = useStore((s) => s.result);
   const status = useStore((s) => s.status);
@@ -46,6 +49,8 @@ export function Dashboard() {
   const setAreaTenths = useStore((s) => s.setAreaTenths);
   const setMode = useStore((s) => s.setMode);
   const setExcludeNonIssued = useStore((s) => s.setExcludeNonIssued);
+  const setPrimaryDenom = useStore((s) => s.setPrimaryDenom);
+  const setOnlyPrimary = useStore((s) => s.setOnlyPrimary);
 
   const detail = result ? result.geometry.count <= DETAIL_PIECE_LIMIT : false;
 
@@ -61,6 +66,13 @@ export function Dashboard() {
             <span className="text-sm font-medium text-foreground">Currency</span>
             <CountryCombobox value={currencyCode} onSelect={setCurrency} />
           </div>
+          <DenomPicker
+            currencyCode={currencyCode}
+            primaryDenom={primaryDenom}
+            onlyPrimary={onlyPrimary}
+            onPrimaryChange={setPrimaryDenom}
+            onOnlyPrimaryChange={setOnlyPrimary}
+          />
           <div className="min-w-0 flex-1">
             <RoomSlider areaTenths={areaTenths} onChange={setAreaTenths} />
           </div>

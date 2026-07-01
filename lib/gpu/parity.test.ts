@@ -7,12 +7,14 @@ import type { Denomination } from '@/lib/currency/types';
 import type { PackRequest, Mode } from '@/lib/packer/types';
 import { hashBaseSeed, type U64 } from '@/lib/packer/rng';
 import {
+  applyPrimaryFirst,
   buildArchetypeOrders,
   computeBaseSeed,
   makeCandidate,
   modeIndex,
   type Config,
 } from '@/lib/packer/candidates';
+import { getEligibleDenoms } from '@/lib/packer/eligible';
 import { shelfScoreCandidate } from '@/lib/packer/scoring';
 import { computeRoomSideUnits } from '@/lib/packer/skyline';
 
@@ -22,6 +24,7 @@ import {
   makeRng as mMakeRng,
   makePermutation as mMakePermutation,
   decodePolicies as mDecodePolicies,
+  applyPrimaryFirst as mApplyPrimaryFirst,
   reconstructOrder as mReconstructOrder,
   shelfScore as mShelfScore,
   GOLDEN_VECTOR,
@@ -43,6 +46,8 @@ function makeReq(p: Partial<PackRequest> = {}): PackRequest {
     fxSnapshotId: 'test-snapshot',
     fxStale: false,
     candidateCount: 2048,
+    primaryDenom: null,
+    onlyPrimary: false,
     ...p,
   };
 }
@@ -215,5 +220,134 @@ describe('wgslMirror ranking parity vs CPU twin', () => {
       // Sanity: at least some base configs are exercised.
       expect(ids.filter((i) => i < N_BASE_CONFIGS).length).toBeGreaterThan(0);
     });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 6. "main denomination" (primary) parity — the new packer feature. The mirror's
+//    applyPrimaryFirst + reconstructOrder must move the primary to the front the
+//    SAME way lib/packer candidates.ts does (which the WGSL kernel then mirrors).
+// ---------------------------------------------------------------------------
+describe('wgslMirror applyPrimaryFirst parity vs CPU', () => {
+  // (order, idx) vectors: identity, middle, already-first, last, single-shift.
+  const cases: Array<{ order: number[]; idx: number }> = [
+    { order: [0, 1, 2, 3, 4], idx: -1 }, // identity (no primary)
+    { order: [0, 1, 2, 3, 4], idx: 2 }, // primary in the middle
+    { order: [3, 1, 4, 0, 2], idx: 3 }, // primary already first
+    { order: [3, 1, 4, 0, 2], idx: 2 }, // primary last
+    { order: [5, 6, 7], idx: 7 }, // shift a single leading element
+    { order: [8, 6, 7, 5, 2, 4, 1, 3, 0], idx: 8 }, // 9-coin golden order, already-first
+  ];
+  for (const { order, idx } of cases) {
+    it(`matches candidates.applyPrimaryFirst for order=${order} idx=${idx}`, () => {
+      const cpu = Array.from(applyPrimaryFirst(Int32Array.from(order), idx));
+      const mirror = mApplyPrimaryFirst(order, idx);
+      expect(mirror).toEqual(cpu);
+    });
+  }
+});
+
+describe('wgslMirror primary-denomination ordering golden', () => {
+  it('PLN 5 zł coin primary => 9 coins, primaryEligibleIndex=8, candidate #0 order [8,6,7,5,2,4,1,3,0]', () => {
+    const req = makeReq({
+      mode: 'densest',
+      areaTenths: 40,
+      excludeNonIssued: true,
+      primaryDenom: 14, // 5 zł coin (full-array index)
+      onlyPrimary: false,
+      candidateCount: 64,
+    });
+    const { eligible, primaryEligibleIndex } = getEligibleDenoms(req);
+
+    // Coin-primary drops all notes -> the 9 PLN coins, primary last in dataset order.
+    expect(eligible.length).toBe(9);
+    expect(eligible.every((d) => d.kind === 'coin')).toBe(true);
+    expect(primaryEligibleIndex).toBe(8);
+
+    const baseSeed = computeBaseSeed(req);
+    const orders = buildArchetypeOrders(eligible, PLN_PER_MINOR);
+    const n = eligible.length;
+
+    // candidate #0 is base archetype 0; final ordering has the primary at front.
+    const mirrorOrder = mReconstructOrder(0, baseSeed, n, orders, primaryEligibleIndex);
+    const cpuOrder = Array.from(
+      makeCandidate(0, baseSeed, n, orders, primaryEligibleIndex).order,
+    );
+    expect(mirrorOrder).toEqual([8, 6, 7, 5, 2, 4, 1, 3, 0]);
+    expect(mirrorOrder).toEqual(cpuOrder);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. shelfScore parity WITH the primary feature engaged (note-primary + coin-
+//    primary). The mirror reconstructs the primary-first order itself, so this
+//    exercises reconstructOrder + applyPrimaryFirst + shelfScore end-to-end.
+// ---------------------------------------------------------------------------
+describe('wgslMirror shelfScore parity vs CPU twin (primary engaged)', () => {
+  const SAMPLE = [0, 1, 7, 50, 100, 191, 192, 193, 300, 500, 1000, 2047];
+  // primaryDenom 14 = 5 zł COIN (drops notes); 2 = 50 zł NOTE (keeps coins as fill).
+  const scenarios: Array<{ label: string; primaryDenom: number }> = [
+    { label: 'coin-primary (5 zł)', primaryDenom: 14 },
+    { label: 'note-primary (50 zł)', primaryDenom: 2 },
+  ];
+  const modes: Mode[] = ['cheapest', 'densest', 'fewest'];
+
+  for (const { label, primaryDenom } of scenarios) {
+    for (const mode of modes) {
+      it(`PLN ${mode} ${label}: exact (coverageQ, metric, pieceCount) parity + ranking`, () => {
+        const req = makeReq({
+          mode,
+          areaTenths: 20,
+          excludeNonIssued: true,
+          primaryDenom,
+          onlyPrimary: false,
+        });
+        const { eligible, primaryEligibleIndex } = getEligibleDenoms(req);
+        expect(primaryEligibleIndex).toBeGreaterThanOrEqual(0);
+
+        const baseSeed = computeBaseSeed(req);
+        const orders = buildArchetypeOrders(eligible, PLN_PER_MINOR);
+        const n = eligible.length;
+        const mDenoms = toMirrorDenoms(eligible);
+        const roomSide = computeRoomSideUnits(req.areaTenths);
+        const mi = modeIndex(mode);
+
+        const cpuScores = new Map<number, { coverageQ: number; metric: number }>();
+        const mirrorScores = new Map<number, { coverageQ: number; metric: number }>();
+
+        for (const id of SAMPLE) {
+          const config: Config = makeCandidate(id, baseSeed, n, orders, primaryEligibleIndex);
+          const cpu = shelfScoreCandidate(config, req, eligible, PLN_PER_MINOR);
+          // Mirror rebuilds the primary-first order from scratch (reconstruct path).
+          const mirrorOrder = mReconstructOrder(id, baseSeed, n, orders, primaryEligibleIndex);
+          expect(mirrorOrder, `order ${id}`).toEqual(Array.from(config.order));
+          const mirror = mShelfScore({
+            order: mirrorOrder,
+            orientPolicy: config.orientPolicy,
+            modeIndex: mi,
+            roomSide,
+            plnPerMinor: PLN_PER_MINOR,
+            denoms: mDenoms,
+          });
+          expect(mirror, `candidate ${id}`).toEqual({
+            coverageQ: cpu.coverageQ,
+            metric: cpu.metric,
+            pieceCount: cpu.pieceCount,
+          });
+          cpuScores.set(id, { coverageQ: cpu.coverageQ, metric: cpu.metric });
+          mirrorScores.set(id, { coverageQ: mirror.coverageQ, metric: mirror.metric });
+        }
+
+        const rank = (m: Map<number, { coverageQ: number; metric: number }>) =>
+          [...SAMPLE].sort((a, b) => {
+            const sa = m.get(a)!;
+            const sb = m.get(b)!;
+            if (sa.coverageQ !== sb.coverageQ) return sb.coverageQ - sa.coverageQ;
+            if (sa.metric !== sb.metric) return sb.metric - sa.metric;
+            return a - b;
+          });
+        expect(rank(mirrorScores)).toEqual(rank(cpuScores));
+      });
+    }
   }
 });

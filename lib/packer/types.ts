@@ -69,4 +69,16 @@ export interface PackRequest {
   fxSnapshotId: string;
   fxStale: boolean;
   candidateCount: number;
+
+  // --- "main denomination" selection (see lib/packer/eligible.ts) ---
+  // Index into the currency's FULL denominations array
+  // (getCurrency(currencyCode).denominations). When set, the packer LEADS with
+  // this denomination (packed first + dominant) and fills the rest with the
+  // currency's other eligible denominations. A COIN primary drops all notes; a
+  // NOTE primary keeps coins as gap-fill. null = auto/mix (default behavior).
+  primaryDenom: number | null;
+  // When true AND primaryDenom is set, restrict the pack to JUST that one
+  // denomination (single-denomination carpet; no gap-fill; leftover floor empty).
+  // Ignored when primaryDenom is null.
+  onlyPrimary: boolean;
 }

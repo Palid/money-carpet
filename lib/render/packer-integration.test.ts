@@ -39,6 +39,8 @@ function makeReq(p: Partial<PackRequest>): PackRequest {
     fxSnapshotId: 'test',
     fxStale: false,
     candidateCount: DEFAULT_CANDIDATES,
+    primaryDenom: null,
+    onlyPrimary: false,
     ...p,
   };
 }

@@ -13,6 +13,14 @@ export interface AppData {
   areaTenths: number; // 0.1 m^2 units (10..100 for 1..10 m^2)
   mode: Mode;
   excludeNonIssued: boolean;
+  /**
+   * Index into the SELECTED currency's FULL denominations array
+   * (getCurrency(currencyCode).denominations). null = auto/mix (default).
+   * Per-currency — must be reset whenever currencyCode changes.
+   */
+  primaryDenom: number | null;
+  /** When true (and primaryDenom set), pack ONLY that denomination. */
+  onlyPrimary: boolean;
 
   rates: RatesResponse | null;
 
@@ -26,6 +34,8 @@ export interface AppState extends AppData {
   setAreaTenths: (t: number) => void;
   setMode: (m: Mode) => void;
   setExcludeNonIssued: (b: boolean) => void;
+  setPrimaryDenom: (idx: number | null) => void;
+  setOnlyPrimary: (b: boolean) => void;
   setRates: (r: RatesResponse) => void;
   setResult: (r: PackResult) => void;
   setStatus: (s: Status, message?: string | null) => void;
@@ -42,6 +52,8 @@ export const initialAppData: AppData = {
   areaTenths: 40,
   mode: 'cheapest',
   excludeNonIssued: true,
+  primaryDenom: null,
+  onlyPrimary: false,
   rates: null,
   result: null,
   status: 'idle',
@@ -52,10 +64,17 @@ export const initialAppData: AppData = {
 export const store = createStore<AppState>((set) => ({
   ...initialAppData,
 
-  setCurrency: (code) => set({ currencyCode: code }),
+  // Denomination indices are per-currency: switching currencies must reset
+  // the main-denomination selection, or a stale index would silently point
+  // at the wrong denomination in the new currency's array.
+  setCurrency: (code) =>
+    set({ currencyCode: code, primaryDenom: null, onlyPrimary: false }),
   setAreaTenths: (t) => set({ areaTenths: t }),
   setMode: (m) => set({ mode: m }),
   setExcludeNonIssued: (b) => set({ excludeNonIssued: b }),
+  setPrimaryDenom: (idx) =>
+    set(idx === null ? { primaryDenom: null, onlyPrimary: false } : { primaryDenom: idx }),
+  setOnlyPrimary: (b) => set({ onlyPrimary: b }),
   setRates: (r) => set({ rates: r }),
   setResult: (r) => set({ result: r }),
   setStatus: (s, message = null) => set({ status: s, errorMessage: message }),

@@ -117,11 +117,19 @@ function distanceTransform2D(occ: Uint8Array, gridN: number): Float64Array {
 /**
  * Fill the free space between notes with coins. If there are no eligible coins
  * the result is empty.
+ *
+ * `priorityCoinDenom` (optional, an index into `eligibleDenoms`) makes a chosen
+ * coin DOMINANT: when set to an eligible coin, that coin is seated FIRST at every
+ * SDF maximum it fits (highest-clearance seeds first), and only THEN are the
+ * remaining coins seated largest-radius-first as usual. This is a CPU-only
+ * priority with no bit-parity impact (the GPU coin score stays analytic); the
+ * exact non-overlap geometry tests are unchanged.
  */
 export function circleFill(
   notes: NotePlacement[],
   roomSide: number,
   eligibleDenoms: Denomination[],
+  priorityCoinDenom?: number,
 ): CircleFillResult {
   const coinTypes = eligibleCoinTypes(eligibleDenoms);
   if (coinTypes.length === 0) return { coins: [], coinArea: 0 };
@@ -317,27 +325,42 @@ export function circleFill(
     }
   };
 
-  for (let si = 0; si < seeds.length; si++) {
-    const c = seeds[si];
-    if (consumed[c]) continue;
-    const clear = sdf[c];
-    if (clear < minCoinR - slack) continue; // even the smallest coin cannot fit
-    const cx = cellCx[c];
-    const cy = cellCy[c];
-    for (const ct of coinTypes) {
-      const r = ct.r;
-      if (clear < r - slack) continue; // this coin is too big for the clearance here
-      if (cx - r < 0 || cx + r > roomSide || cy - r < 0 || cy + r > roomSide) continue;
-      if (noteOverlaps(cx, cy, r)) continue;
-      if (coinOverlaps(cx, cy, r)) continue;
-      const coin: CoinPlacement = { denomIndex: ct.denomIndex, cx, cy, r };
-      coins.push(coin);
-      addCoinToHash(coin);
-      coinArea += Math.PI * r * r;
-      markConsumed(cx, cy, r);
-      break; // largest fitting coin placed; move to the next seed
+  // One seating pass: scan seeds in descending-SDF order and, at each unconsumed
+  // seed, place the first coin from `types` (already radius-desc) that fits. This
+  // is exactly the original single pass when called with the full coinTypes list.
+  const seatPass = (types: CoinType[]) => {
+    if (types.length === 0) return;
+    const minR = types[types.length - 1].r; // smallest radius in this pass
+    for (let si = 0; si < seeds.length; si++) {
+      const c = seeds[si];
+      if (consumed[c]) continue;
+      const clear = sdf[c];
+      if (clear < minR - slack) continue; // even the smallest coin in this pass cannot fit
+      const cx = cellCx[c];
+      const cy = cellCy[c];
+      for (const ct of types) {
+        const r = ct.r;
+        if (clear < r - slack) continue; // this coin is too big for the clearance here
+        if (cx - r < 0 || cx + r > roomSide || cy - r < 0 || cy + r > roomSide) continue;
+        if (noteOverlaps(cx, cy, r)) continue;
+        if (coinOverlaps(cx, cy, r)) continue;
+        const coin: CoinPlacement = { denomIndex: ct.denomIndex, cx, cy, r };
+        coins.push(coin);
+        addCoinToHash(coin);
+        coinArea += Math.PI * r * r;
+        markConsumed(cx, cy, r);
+        break; // largest fitting coin placed; move to the next seed
+      }
     }
+  };
+
+  // Coin-primary: seat the priority coin at all maxima it fits FIRST (dominant),
+  // then fall through to the normal largest-first fill for the interstitial gaps.
+  if (priorityCoinDenom != null) {
+    const priority = coinTypes.find((ct) => ct.denomIndex === priorityCoinDenom);
+    if (priority) seatPass([priority]);
   }
+  seatPass(coinTypes);
 
   return { coins, coinArea };
 }

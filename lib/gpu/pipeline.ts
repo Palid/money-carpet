@@ -35,6 +35,8 @@ export interface DispatchParams {
   baseSeedLo: number;
   denomCount: number;
   plnPerMinor: number;
+  /** eligible index of the "main denomination", or -1 when none is selected. */
+  primaryEligibleIndex: number;
   /** stride-5 per denom: [kind, w, h, r, minorValue]. length = denomCount*5. */
   denomData: Uint32Array;
   /** 8 * denomCount, row-major by archetype. */
@@ -77,6 +79,7 @@ export async function createSearchPipeline(device: GPUDevice): Promise<SearchPip
     });
     const u32 = new Uint32Array(PARAMS_U32_COUNT);
     const f32 = new Float32Array(u32.buffer);
+    const i32 = new Int32Array(u32.buffer);
     u32[0] = p.roomSideUnits >>> 0;
     u32[1] = p.modeIndex >>> 0;
     u32[2] = p.candidateCount >>> 0;
@@ -84,7 +87,7 @@ export async function createSearchPipeline(device: GPUDevice): Promise<SearchPip
     u32[4] = p.baseSeedLo >>> 0;
     u32[5] = p.denomCount >>> 0;
     f32[6] = p.plnPerMinor;
-    u32[7] = 0; // _pad
+    i32[7] = p.primaryEligibleIndex | 0; // signed: -1 = no primary
     device.queue.writeBuffer(buf, 0, u32);
     return buf;
   }

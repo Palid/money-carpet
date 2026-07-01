@@ -41,7 +41,12 @@ export function isStale(responseId: number, latestId: number): boolean {
 
 export type PackRequestState = Pick<
   AppData,
-  'currencyCode' | 'areaTenths' | 'mode' | 'excludeNonIssued'
+  | 'currencyCode'
+  | 'areaTenths'
+  | 'mode'
+  | 'excludeNonIssued'
+  | 'primaryDenom'
+  | 'onlyPrimary'
 >;
 
 /** Builds the PackRequest the worker expects from current UI intent + FX rates. */
@@ -59,6 +64,8 @@ export function buildPackRequest(
     fxSnapshotId: rates.snapshotId,
     fxStale: rates.stale,
     candidateCount: DEFAULT_CANDIDATES,
+    primaryDenom: state.primaryDenom,
+    onlyPrimary: state.onlyPrimary,
   };
 }
 
@@ -191,7 +198,9 @@ export function initRecompute(): void {
     const otherIntentChanged =
       state.currencyCode !== prev.currencyCode ||
       state.mode !== prev.mode ||
-      state.excludeNonIssued !== prev.excludeNonIssued;
+      state.excludeNonIssued !== prev.excludeNonIssued ||
+      state.primaryDenom !== prev.primaryDenom ||
+      state.onlyPrimary !== prev.onlyPrimary;
     prev = state;
 
     if (!areaChanged && !otherIntentChanged) return;

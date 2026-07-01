@@ -9,7 +9,6 @@
  */
 
 import type { Denomination } from '@/lib/currency/types';
-import { getCurrency } from '@/lib/currency/dataset';
 import { noteDimsUnits, coinRadiusUnits } from '@/lib/currency/derived';
 import { DEFAULT_CANDIDATES } from '@/lib/config/constants';
 import type { PackRequest, PackResult } from '@/lib/packer/types';
@@ -19,6 +18,7 @@ import {
   computeBaseSeed,
   modeIndex,
 } from '@/lib/packer/candidates';
+import { getEligibleDenoms } from '@/lib/packer/eligible';
 import { replayTopK } from '@/lib/packer/replay';
 import type { U64 } from '@/lib/packer/rng';
 import type { SearchPipeline, DispatchParams } from '@/lib/gpu/pipeline';
@@ -28,12 +28,14 @@ import { GOLDEN_VECTOR } from '@/lib/gpu/wgslMirror';
 
 const TOP_K = 8;
 
-/** Resolve eligible denominations exactly like lib/packer/replay.ts. */
+/**
+ * Resolve eligible denominations via the SINGLE shared source of truth
+ * (lib/packer/eligible.getEligibleDenoms), so the GPU uploads the byte-identical
+ * eligible set the CPU replay re-derives. Returns only the ordered list; callers
+ * that also need the primary index should call getEligibleDenoms directly.
+ */
 export function resolveEligible(req: PackRequest): Denomination[] {
-  const currency = getCurrency(req.currencyCode);
-  return currency.denominations.filter(
-    (d) => !(req.excludeNonIssued && d.status === 'legalTenderNotIssued'),
-  );
+  return getEligibleDenoms(req).eligible;
 }
 
 /** stride-5 per denom: [kind, noteW, noteH, coinR, minorValue] (matches WGSL denomData). */
@@ -103,6 +105,7 @@ export async function runSearch(
   req: PackRequest,
   eligibleDenoms: Denomination[],
   baseSeed: U64,
+  primaryEligibleIndex: number = -1,
 ): Promise<number[]> {
   void device; // pipeline already owns its device; kept for API symmetry.
   await verifyGpuParity(pipeline); // dev-mode on-GPU golden-vector guard (once).
@@ -117,6 +120,7 @@ export async function runSearch(
     baseSeedLo: baseSeed.lo >>> 0,
     denomCount: eligibleDenoms.length,
     plnPerMinor,
+    primaryEligibleIndex,
     denomData: buildDenomData(eligibleDenoms),
     archOrders: buildArchOrders(eligibleDenoms, plnPerMinor),
   };
@@ -133,9 +137,20 @@ export async function searchAndReplay(
   pipeline: SearchPipeline,
   req: PackRequest,
 ): Promise<PackResult> {
-  const eligibleDenoms = resolveEligible(req);
+  // Resolve the eligible set + primary index ONCE via the shared source of truth,
+  // so the GPU dispatch uploads the byte-identical list/index that replayTopK
+  // re-derives (it calls getEligibleDenoms(req) itself) for the authoritative CPU
+  // replay. This keeps the GPU ranking and the CPU replay on the same denom space.
+  const { eligible: eligibleDenoms, primaryEligibleIndex } = getEligibleDenoms(req);
   const baseSeed = computeBaseSeed(req);
-  const topIds = await runSearch(device, pipeline, req, eligibleDenoms, baseSeed);
+  const topIds = await runSearch(
+    device,
+    pipeline,
+    req,
+    eligibleDenoms,
+    baseSeed,
+    primaryEligibleIndex,
+  );
   // CPU is authoritative: it re-derives + replays each of the GPU's top-8 and
   // returns the lexicographic best (ties -> lowest candidateId).
   return replayTopK(req, topIds);

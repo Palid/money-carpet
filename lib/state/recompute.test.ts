@@ -19,6 +19,8 @@ describe('buildPackRequest', () => {
       areaTenths: 40,
       mode: 'cheapest' as const,
       excludeNonIssued: true,
+      primaryDenom: null,
+      onlyPrimary: false,
     };
 
     const req = buildPackRequest(state, rates);
@@ -32,6 +34,8 @@ describe('buildPackRequest', () => {
       fxSnapshotId: rates.snapshotId,
       fxStale: rates.stale,
       candidateCount: DEFAULT_CANDIDATES,
+      primaryDenom: null,
+      onlyPrimary: false,
     });
   });
 
@@ -43,6 +47,8 @@ describe('buildPackRequest', () => {
         areaTenths: 55,
         mode: 'densest',
         excludeNonIssued: false,
+        primaryDenom: null,
+        onlyPrimary: false,
       },
       rates,
     );
@@ -57,6 +63,8 @@ describe('buildPackRequest', () => {
     expect(req.fxSnapshotId).toBe(rates.snapshotId);
     expect(req.fxStale).toBe(rates.stale);
     expect(req.candidateCount).toBe(DEFAULT_CANDIDATES);
+    expect(req.primaryDenom).toBeNull();
+    expect(req.onlyPrimary).toBe(false);
   });
 
   it('always stamps candidateCount with DEFAULT_CANDIDATES', () => {
@@ -66,10 +74,29 @@ describe('buildPackRequest', () => {
         areaTenths: 10,
         mode: 'fewest',
         excludeNonIssued: true,
+        primaryDenom: null,
+        onlyPrimary: false,
       },
       rates,
     );
     expect(req.candidateCount).toBe(DEFAULT_CANDIDATES);
+  });
+
+  it('passes a non-null primaryDenom and onlyPrimary through unchanged', () => {
+    const req = buildPackRequest(
+      {
+        currencyCode: 'PLN',
+        areaTenths: 40,
+        mode: 'cheapest',
+        excludeNonIssued: true,
+        primaryDenom: 3,
+        onlyPrimary: true,
+      },
+      rates,
+    );
+
+    expect(req.primaryDenom).toBe(3);
+    expect(req.onlyPrimary).toBe(true);
   });
 });
 

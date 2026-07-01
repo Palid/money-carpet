@@ -11,9 +11,13 @@ export {
   makeCandidate,
   buildArchetypeOrders,
   computeBaseSeed,
+  applyPrimaryFirst,
   modeIndex,
   type Config,
 } from '@/lib/packer/candidates';
+
+// Eligible-denomination resolution (single source of truth, shared with the GPU).
+export { getEligibleDenoms, type EligibleSet } from '@/lib/packer/eligible';
 export {
   makePermutation,
   decodeConfig,

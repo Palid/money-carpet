@@ -31,10 +31,57 @@ export function modeIndex(mode: Mode): number {
   return mode === 'cheapest' ? 0 : mode === 'densest' ? 1 : 2;
 }
 
-/** The per-request PCG initstate. */
+/**
+ * Move the primary denomination to the FRONT of a candidate ordering (stable).
+ *
+ * `order` is a permutation of eligible-denom indices; `primaryEligibleIndex` is
+ * both the VALUE we look for inside `order` and the value we place at position 0
+ * (it is the primary's index within `eligible`). We remove that value from
+ * wherever it sits and unshift it to the front; every other element keeps its
+ * relative order. When primaryEligibleIndex < 0 the order is returned unchanged.
+ *
+ * This is the ONLY parity-relevant transform for the primary-denomination
+ * feature; the WGSL port must match it line-for-line.
+ */
+export function applyPrimaryFirst(order: Int32Array, primaryEligibleIndex: number): Int32Array {
+  if (primaryEligibleIndex < 0) return order;
+  const n = order.length;
+  const out = new Int32Array(n);
+  out[0] = primaryEligibleIndex;
+  let w = 1;
+  for (let i = 0; i < n; i++) {
+    if (order[i] === primaryEligibleIndex) continue; // drop the primary from its old spot
+    out[w++] = order[i];
+  }
+  return out;
+}
+
+/**
+ * The per-request PCG initstate. primaryDenom and onlyPrimary are folded into the
+ * fx-hash lane so distinct primary selections yield distinct searches. When no
+ * primary is selected the fold is the IDENTITY, so the pre-feature seed (and thus
+ * all pre-feature behavior) is preserved exactly. baseSeed is computed on the CPU
+ * and passed to the GPU as a uniform, so this needs no WGSL change.
+ */
 export function computeBaseSeed(req: PackRequest): U64 {
   const fxHash = hashStringU32(req.fxSnapshotId);
-  return hashBaseSeed(req.currencyCode, req.areaTenths, modeIndex(req.mode), DATASET_VERSION, fxHash);
+  const seedHash = foldPrimarySelection(fxHash, req.primaryDenom, req.onlyPrimary);
+  return hashBaseSeed(req.currencyCode, req.areaTenths, modeIndex(req.mode), DATASET_VERSION, seedHash);
+}
+
+/**
+ * Mix (primaryDenom, onlyPrimary) into a u32 hash lane. Identity when there is no
+ * primary selection (primaryDenom == null), otherwise a cheap deterministic
+ * integer avalanche so distinct (primaryDenom, onlyPrimary) map to distinct seeds.
+ */
+function foldPrimarySelection(fxHash: number, primaryDenom: number | null, onlyPrimary: boolean): number {
+  if (primaryDenom == null) return fxHash >>> 0; // identity: unchanged pre-feature seed
+  const sel = (((primaryDenom & 0xffff) | (onlyPrimary ? 0x10000 : 0)) >>> 0);
+  let h = (fxHash ^ Math.imul(sel + 0x9e3779b1, 0x85ebca6b)) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return h >>> 0;
 }
 
 /**
@@ -109,24 +156,29 @@ export function buildArchetypeOrders(denoms: Denomination[], plnPerMinor: number
   return orders;
 }
 
-/** Build a single Config for a given candidateId (used by replayTopK). */
+/**
+ * Build a single Config for a given candidateId (used by replayTopK).
+ * `primaryEligibleIndex` (default -1 = none) is applied via applyPrimaryFirst so
+ * the primary denomination leads the ordering.
+ */
 export function makeCandidate(
   candidateId: number,
   baseSeed: U64,
   n: number,
   archetypeOrders: Int32Array[],
+  primaryEligibleIndex: number = -1,
 ): Config {
   if (candidateId < N_BASE_CONFIGS) {
     const d = decodeBaseArchetype(candidateId);
     return {
       candidateId,
-      order: archetypeOrders[d.archetype],
+      order: applyPrimaryFirst(archetypeOrders[d.archetype], primaryEligibleIndex),
       startCorner: d.startCorner,
       orientPolicy: d.orientPolicy,
       fitHeuristic: d.fitHeuristic,
     };
   }
-  const order = makePermutation(candidateId, baseSeed, n);
+  const order = applyPrimaryFirst(makePermutation(candidateId, baseSeed, n), primaryEligibleIndex);
   const pol = decodeConfig(candidateId, baseSeed, n);
   return { candidateId, order, ...pol };
 }
@@ -136,6 +188,7 @@ export function makeCandidates(
   req: PackRequest,
   eligibleDenoms: Denomination[],
   plnPerMinor: number,
+  primaryEligibleIndex: number = -1,
 ): Config[] {
   const n = eligibleDenoms.length;
   const total = req.candidateCount > 0 ? req.candidateCount : DEFAULT_CANDIDATES;
@@ -144,7 +197,7 @@ export function makeCandidates(
 
   const configs: Config[] = [];
   for (let candidateId = 0; candidateId < total; candidateId++) {
-    configs.push(makeCandidate(candidateId, baseSeed, n, archetypeOrders));
+    configs.push(makeCandidate(candidateId, baseSeed, n, archetypeOrders, primaryEligibleIndex));
   }
   return configs;
 }

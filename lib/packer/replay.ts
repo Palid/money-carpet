@@ -34,6 +34,7 @@ import {
   makeCandidate,
   makeCandidates,
 } from '@/lib/packer/candidates';
+import { getEligibleDenoms } from '@/lib/packer/eligible';
 import { packNotes, computeRoomSideUnits, orientedDims, type NotePlacement } from '@/lib/packer/skyline';
 import { circleFill, type CoinPlacement } from '@/lib/packer/circleFill';
 import { computeScoreKey, shelfScoreCandidate } from '@/lib/packer/scoring';
@@ -41,11 +42,15 @@ import { computeScoreKey, shelfScoreCandidate } from '@/lib/packer/scoring';
 const TOP_K = 8;
 const COIN_ESTIMATE_FILL = 0.85;
 
-function resolveEligible(req: PackRequest): Denomination[] {
-  const currency = getCurrency(req.currencyCode);
-  return currency.denominations.filter(
-    (d) => !(req.excludeNonIssued && d.status === 'legalTenderNotIssued'),
-  );
+/**
+ * The priority coin (eligible index) for circleFill, or undefined. It is the
+ * primary denomination only when the primary is a coin (coin-primary makes that
+ * coin dominant on the floor); for note-primary or no-primary there is none.
+ */
+function priorityCoinDenom(eligible: Denomination[], primaryEligibleIndex: number): number | undefined {
+  if (primaryEligibleIndex < 0) return undefined;
+  const d = eligible[primaryEligibleIndex];
+  return d && d.kind === 'coin' ? primaryEligibleIndex : undefined;
 }
 
 function buildDenomTable(currencyCode: string, minorDigits: number, eligible: Denomination[]): DenomRef[] {
@@ -168,7 +173,9 @@ export function replayCandidate(
   req: PackRequest,
   eligibleDenoms: Denomination[],
   plnPerMinor: number,
+  primaryEligibleIndex: number = -1,
 ): PackResult {
+  const priorityCoin = priorityCoinDenom(eligibleDenoms, primaryEligibleIndex);
   const currency = getCurrency(req.currencyCode);
   const minorDigits = currency.minorDigits;
   const currencyCode = currency.code;
@@ -211,7 +218,7 @@ export function replayCandidate(
     // ---- full authoritative replay ----
     const fullNotes = packNotes(config, roomSide, eligibleDenoms).placements;
     const fullNoteArea = fullNotes.reduce((s, n) => s + n.w * n.h, 0);
-    const coins = isFewest ? [] : circleFill(fullNotes, roomSide, eligibleDenoms).coins;
+    const coins = isFewest ? [] : circleFill(fullNotes, roomSide, eligibleDenoms, priorityCoin).coins;
     const coinArea = coins.reduce((s, c) => s + Math.PI * c.r * c.r, 0);
     const geometry = buildGeometry(fullNotes, coins);
     const { perDenom, pieceCount, totalValueMinor } = buildPerDenom(eligibleDenoms, fullNotes, coins, 1);
@@ -249,7 +256,7 @@ export function replayCandidate(
 
   const blockNotes = packNotes(config, blockSide, eligibleDenoms).placements;
   const blockNoteArea = blockNotes.reduce((s, n) => s + n.w * n.h, 0);
-  const blockCoins = isFewest ? [] : circleFill(blockNotes, blockSide, eligibleDenoms).coins;
+  const blockCoins = isFewest ? [] : circleFill(blockNotes, blockSide, eligibleDenoms, priorityCoin).coins;
   const blockCoinArea = blockCoins.reduce((s, c) => s + Math.PI * c.r * c.r, 0);
 
   const rho = roomArea / blockArea;
@@ -303,9 +310,9 @@ function pickBest(results: PackResult[]): PackResult {
  * lexicographic best (ties -> lowest candidateId).
  */
 export function packCPU(req: PackRequest): PackResult {
-  const eligibleDenoms = resolveEligible(req);
+  const { eligible: eligibleDenoms, primaryEligibleIndex } = getEligibleDenoms(req);
   const plnPerMinor = req.plnPerMinor;
-  const candidates = makeCandidates(req, eligibleDenoms, plnPerMinor);
+  const candidates = makeCandidates(req, eligibleDenoms, plnPerMinor, primaryEligibleIndex);
 
   // Rank all candidates by the fast shelf scorer.
   const ranked = candidates.map((config) => ({
@@ -319,7 +326,9 @@ export function packCPU(req: PackRequest): PackResult {
   });
 
   const topK = ranked.slice(0, Math.min(TOP_K, ranked.length));
-  const results = topK.map((e) => replayCandidate(e.config, req, eligibleDenoms, plnPerMinor));
+  const results = topK.map((e) =>
+    replayCandidate(e.config, req, eligibleDenoms, plnPerMinor, primaryEligibleIndex),
+  );
   return pickBest(results);
 }
 
@@ -328,15 +337,15 @@ export function packCPU(req: PackRequest): PackResult {
  * return the lexicographic best, mirroring packCPU's final selection.
  */
 export function replayTopK(req: PackRequest, candidateIds: number[]): PackResult {
-  const eligibleDenoms = resolveEligible(req);
+  const { eligible: eligibleDenoms, primaryEligibleIndex } = getEligibleDenoms(req);
   const plnPerMinor = req.plnPerMinor;
   const baseSeed = computeBaseSeed(req);
   const archetypeOrders = buildArchetypeOrders(eligibleDenoms, plnPerMinor);
   const n = eligibleDenoms.length;
 
   const results = candidateIds.map((id) => {
-    const config = makeCandidate(id, baseSeed, n, archetypeOrders);
-    return replayCandidate(config, req, eligibleDenoms, plnPerMinor);
+    const config = makeCandidate(id, baseSeed, n, archetypeOrders, primaryEligibleIndex);
+    return replayCandidate(config, req, eligibleDenoms, plnPerMinor, primaryEligibleIndex);
   });
   return pickBest(results);
 }

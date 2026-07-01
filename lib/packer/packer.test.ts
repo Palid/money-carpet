@@ -22,6 +22,8 @@ function makeReq(p: Partial<PackRequest>): PackRequest {
     fxSnapshotId: 'test-snapshot',
     fxStale: false,
     candidateCount: 2048,
+    primaryDenom: null,
+    onlyPrimary: false,
     ...p,
   };
 }

@@ -185,6 +185,35 @@ export function makePermutation(candidateId: number, baseSeed: MirrorU64, n: num
   return order;
 }
 
+/**
+ * candidate.ts:46 applyPrimaryFirst — move the "main denomination" (its eligible
+ * index) to the FRONT of `order` (stable). Line-for-line with pack-search.wgsl's
+ * applyPrimaryFirst: an in-place shift-down. The OUTPUT is identical to lib/packer
+ * candidates.applyPrimaryFirst (the parity test asserts this). Returns a NEW array
+ * so the caller's input is untouched. primaryEligibleIndex < 0 => identity.
+ */
+export function applyPrimaryFirst(
+  order: ArrayLike<number>,
+  primaryEligibleIndex: number,
+  n: number = order.length,
+): number[] {
+  const out = new Array<number>(n);
+  for (let i = 0; i < n; i++) out[i] = order[i];
+  if (primaryEligibleIndex < 0) return out;
+  // find the primary's current position p within order[0..n).
+  let p = 0;
+  for (let i = 0; i < n; i++) {
+    if (out[i] === primaryEligibleIndex) {
+      p = i;
+      break;
+    }
+  }
+  // shift order[0..p) down into [1..p], then place the primary at the front.
+  for (let k = p; k >= 1; k--) out[k] = out[k - 1];
+  out[0] = primaryEligibleIndex;
+  return out;
+}
+
 export interface MirrorPolicies {
   startCorner: number;
   orientPolicy: number;
@@ -227,6 +256,8 @@ export function decodePolicies(candidateId: number, baseSeed: MirrorU64): Mirror
  * does, and as the WGSL kernel does:
  *   base configs (id < 192): the precomputed archetype order (data-derived, not RNG)
  *   padded configs (id >= 192): makePermutation(id, baseSeed, n)
+ * then applyPrimaryFirst moves the "main denomination" to the front (identity when
+ * primaryEligibleIndex < 0, so the pre-feature path is preserved exactly).
  * archetypeOrders[a] must be the SAME arrays buildArchetypeOrders() produced.
  */
 export function reconstructOrder(
@@ -234,15 +265,18 @@ export function reconstructOrder(
   baseSeed: MirrorU64,
   n: number,
   archetypeOrders: ArrayLike<number>[],
+  primaryEligibleIndex: number = -1,
 ): number[] {
+  let order: number[];
   if (candidateId < N_BASE_CONFIGS) {
     const { archetype } = decodeBaseArchetype(candidateId);
     const a = archetypeOrders[archetype];
-    const out = new Array<number>(n);
-    for (let i = 0; i < n; i++) out[i] = a[i];
-    return out;
+    order = new Array<number>(n);
+    for (let i = 0; i < n; i++) order[i] = a[i];
+  } else {
+    order = makePermutation(candidateId, baseSeed, n);
   }
-  return makePermutation(candidateId, baseSeed, n);
+  return applyPrimaryFirst(order, primaryEligibleIndex, n);
 }
 
 // ---------------------------------------------------------------------------

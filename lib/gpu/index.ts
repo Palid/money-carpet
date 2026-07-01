@@ -38,6 +38,7 @@ export {
   nextBounded as mirrorNextBounded,
   makePermutation as mirrorMakePermutation,
   decodePolicies as mirrorDecodePolicies,
+  applyPrimaryFirst as mirrorApplyPrimaryFirst,
   reconstructOrder as mirrorReconstructOrder,
   shelfScore as mirrorShelfScore,
   GOLDEN_VECTOR,

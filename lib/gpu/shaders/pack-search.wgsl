@@ -163,6 +163,27 @@ fn makePermutation(orderOut: ptr<function, array<i32, MAX_DENOMS>>, candidateId:
   }
 }
 
+// candidate.ts:46 applyPrimaryFirst — move the "main denomination" (its eligible
+// index) to the FRONT of `order` (stable). Line-for-line with wgslMirror.ts: an
+// in-place shift-down over the per-thread order buffer (O(1) extra private state),
+// producing OUTPUT identical to the TS reference. primaryEligibleIndex < 0 => no-op.
+fn applyPrimaryFirst(orderOut: ptr<function, array<i32, MAX_DENOMS>>, primaryEligibleIndex: i32, n: u32) {
+  if (primaryEligibleIndex < 0) { return; }
+  // find the primary's current position p within order[0..n).
+  var p: u32 = 0u;
+  for (var i: u32 = 0u; i < n; i = i + 1u) {
+    if ((*orderOut)[i] == primaryEligibleIndex) { p = i; break; }
+  }
+  // shift order[0..p) down into [1..p], then place the primary at the front.
+  var k: u32 = p;
+  loop {
+    if (k == 0u) { break; }
+    (*orderOut)[k] = (*orderOut)[k - 1u];
+    k = k - 1u;
+  }
+  (*orderOut)[0] = primaryEligibleIndex;
+}
+
 // skyline.ts:45 orientedDims — oriented note dims (rot flag unused by the scorer).
 fn orientedDims(w0: i32, h0: i32, orientPolicy: u32) -> vec2<i32> {
   if (orientPolicy == 1u) {
@@ -188,7 +209,7 @@ struct Params {
   baseSeedLo: u32,
   denomCount: u32,
   plnPerMinor: f32,
-  _pad: u32,
+  primaryEligibleIndex: i32, // eligible index of the "main denomination", or -1 (none)
 }
 
 struct ScoreOut {
@@ -256,6 +277,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     orientPolicy = nextBounded(&rngPol, N_ORIENT_POLICIES);
     // fitHeuristic draw omitted: unused by the shelf estimate.
   }
+
+  // Move the "main denomination" to the front (candidates.ts makeCandidate applies
+  // applyPrimaryFirst to BOTH the archetype order and the PCG permutation).
+  applyPrimaryFirst(&order, params.primaryEligibleIndex, n);
 
   // --- shelf score (scoring.ts:91 shelfScoreCandidate). ---
   let roomSide = i32(params.roomSideUnits);
