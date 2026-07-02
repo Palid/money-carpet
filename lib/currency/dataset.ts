@@ -79,4 +79,16 @@ export function listCurrencies(): Currency[] {
   return dataset.currencies;
 }
 
+/**
+ * True when the currency has at least one denomination with an official image
+ * asset. Safe for unknown codes (returns false). Used to decide whether to even
+ * offer the "official currency images" display toggle for the selected currency.
+ */
+export function currencyHasImages(code: string): boolean {
+  const currency = dataset.currencies.find(
+    (c) => c.code.toUpperCase() === code.toUpperCase(),
+  );
+  return currency ? currency.denominations.some((d) => Boolean(d.image)) : false;
+}
+
 export type { Denomination };

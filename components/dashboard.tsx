@@ -3,6 +3,7 @@
 import * as React from 'react';
 
 import { useStore, retryGpu } from '@/lib/state';
+import { currencyHasImages } from '@/lib/currency/dataset';
 import {
   CountryCombobox,
   DenomPicker,
@@ -55,6 +56,9 @@ export function Dashboard() {
   const setUseImages = useStore((s) => s.setUseImages);
 
   const detail = result ? result.geometry.count <= DETAIL_PIECE_LIMIT : false;
+  // Only offer the "official currency images" toggle for currencies we actually
+  // ship image assets for (USD, EUR, PLN today).
+  const imagesSupported = currencyHasImages(currencyCode);
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -96,20 +100,22 @@ export function Dashboard() {
                 </span>
               </span>
             </label>
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                checked={useImages}
-                onChange={(e) => setUseImages(e.target.checked)}
-                className="h-4 w-4 cursor-pointer rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              />
-              <span>
-                Official currency images
-                <span className="ml-1 text-muted-foreground">
-                  (US dollar only &mdash; other currencies use color)
+            {imagesSupported && (
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={useImages}
+                  onChange={(e) => setUseImages(e.target.checked)}
+                  className="h-4 w-4 cursor-pointer rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+                <span>
+                  Official currency images
+                  <span className="ml-1 text-muted-foreground">
+                    (photos where available)
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+            )}
           </div>
         </div>
       </section>
@@ -223,12 +229,15 @@ export function Dashboard() {
               </li>
               <li>
                 <span className="font-medium text-foreground">
-                  Official images &mdash; US dollar only.
+                  Official images &mdash; selected currencies.
                 </span>{' '}
-                With &ldquo;Official currency images&rdquo; on, US banknotes and
-                coins are drawn from public-domain U.S. Government scans
-                (Wikimedia Commons); every other currency falls back to flat
-                color tiles.
+                With &ldquo;Official currency images&rdquo; on, notes and coins
+                use official artwork where we have it &mdash; US dollar
+                (public-domain U.S. Government scans), euro (&copy; ECB, shown
+                under the ECB&rsquo;s reproduction terms), and Polish z&#322;oty
+                (official NBP specimen images). Other currencies &mdash; and any
+                denomination we lack an image for &mdash; fall back to flat color
+                tiles. The toggle only appears for currencies we have images for.
               </li>
               <li>
                 <span className="font-medium text-foreground">

@@ -35,6 +35,12 @@ Note: `usd/note-*.jpg` were replaced in place with higher-resolution
 versions of the same Wikimedia Commons source photographs listed above; the
 file paths did not change.
 
+Note: `usd/coin-*.png` (all six: 1c, 5c, 10c, 25c, 50c, $1) were replaced in
+place with higher-resolution **public-domain** (US Mint / US Government work)
+images from Wikimedia Commons; the file paths did not change. The
+`usd/coin-100c.png` ($1) image is now the **Sacagawea dollar reverse**
+(soaring eagle), which supersedes the George Washington $1 obverse row above.
+
 ## EUR
 
 Source: Wikimedia Commons (official ECB banknote imagery, Europa series).
@@ -54,6 +60,23 @@ NOT public domain.** Euro banknote images may only be reproduced or copied
 in accordance with the reproduction rules set by the European Central
 Bank; they are not freely licensed for arbitrary reuse.
 
+Coins — euro common (design) side, from Wikimedia Commons:
+
+| File | Denomination | License | Author |
+| --- | --- | --- | --- |
+| `eur/coin-1c.png` | 1c | **CC BY 2.0 — attribution required** | Mark Morgan |
+| `eur/coin-2c.png` | 2c | **CC BY-SA 4.0 — attribution required** | Acf |
+| `eur/coin-5c.png` | 5c | **CC BY 2.0 — attribution required** | Mark Morgan |
+| `eur/coin-10c.png` | 10c | **CC BY 2.0 — attribution required** | Mark Morgan |
+| `eur/coin-20c.png` | 20c | **CC BY 2.0 — attribution required** | Mark Morgan |
+| `eur/coin-50c.png` | 50c | **CC BY 2.0 — attribution required** | Mark Morgan |
+| `eur/coin-100c.png` | €1 | **CC BY 2.0 — attribution required** | Mark Morgan |
+| `eur/coin-200c.png` | €2 | **CC BY 2.0 — attribution required** | Mark Morgan |
+
+The euro common-side design is **© European Union**; reproduction is
+authorized. The individual photographs above are additionally licensed
+under Creative Commons and require attribution to their respective authors.
+
 ## PLN
 
 Source: [static.nbp.pl](https://www.nbp.pl/banknoty/) — official Narodowy
@@ -71,3 +94,23 @@ Bank Polski specimen ("WZÓR") banknote images.
 License: **© NBP — official WZÓR/specimen images; reproduction under NBP
 terms.** These are not public domain; they are used per NBP's published
 rules for reproducing banknote images.
+
+Coins — official reverse-side images of the current circulating coins, from
+NBP ([nbp.pl](https://nbp.pl/), `/wp-content/uploads/2022/10/`):
+
+| File | Denomination |
+| --- | --- |
+| `pln/coin-1.png` | 1 gr |
+| `pln/coin-2.png` | 2 gr |
+| `pln/coin-5.png` | 5 gr |
+| `pln/coin-10.png` | 10 gr |
+| `pln/coin-20.png` | 20 gr |
+| `pln/coin-50.png` | 50 gr |
+| `pln/coin-100.png` | 1 zł |
+| `pln/coin-200.png` | 2 zł |
+| `pln/coin-500.png` | 5 zł |
+
+License: **© Narodowy Bank Polski (NBP)** — official coin images used under
+NBP's image-reproduction terms
+([nbp.pl/banknoty-i-monety/wykorzystanie-wizerunkow/](https://nbp.pl/banknoty-i-monety/wykorzystanie-wizerunkow/));
+NOT public domain.

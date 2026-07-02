@@ -13,15 +13,15 @@
         { "kind": "note", "minorValue": 10000, "widthMm": 138, "heightMm": 69, "color": "#6B4423", "label": "100 zł", "series": "2012-2019", "sourceUrl": "https://www.nbp.pl/banknoty/", "image": "/currency/pln/note-100.jpg" },
         { "kind": "note", "minorValue": 20000, "widthMm": 144, "heightMm": 72, "color": "#2E7D32", "label": "200 zł", "series": "2012-2019", "sourceUrl": "https://www.nbp.pl/banknoty/", "image": "/currency/pln/note-200.jpg" },
         { "kind": "note", "minorValue": 50000, "widthMm": 150, "heightMm": 75, "color": "#6A3B82", "label": "500 zł", "series": "2016", "sourceUrl": "https://www.nbp.pl/banknoty/", "image": "/currency/pln/note-500.jpg" },
-        { "kind": "coin", "minorValue": 1, "diameterMm": 15.5, "shape": "circle", "color": "#B87333", "label": "1 gr" },
-        { "kind": "coin", "minorValue": 2, "diameterMm": 17.0, "shape": "circle", "color": "#B87333", "label": "2 gr" },
-        { "kind": "coin", "minorValue": 5, "diameterMm": 19.5, "shape": "circle", "color": "#B87333", "label": "5 gr" },
-        { "kind": "coin", "minorValue": 10, "diameterMm": 16.5, "shape": "circle", "color": "#C9B037", "label": "10 gr" },
-        { "kind": "coin", "minorValue": 20, "diameterMm": 18.5, "shape": "circle", "color": "#C9B037", "label": "20 gr" },
-        { "kind": "coin", "minorValue": 50, "diameterMm": 20.5, "shape": "circle", "color": "#C9B037", "label": "50 gr" },
-        { "kind": "coin", "minorValue": 100, "diameterMm": 23.0, "shape": "circle", "color": "#C0C0C0", "label": "1 zł" },
-        { "kind": "coin", "minorValue": 200, "diameterMm": 21.5, "shape": "circle", "color": "#C0C0C0", "label": "2 zł" },
-        { "kind": "coin", "minorValue": 500, "diameterMm": 24.0, "shape": "circle", "color": "#D4AF37", "label": "5 zł" }
+        { "kind": "coin", "minorValue": 1, "diameterMm": 15.5, "shape": "circle", "color": "#B87333", "label": "1 gr", "image": "/currency/pln/coin-1.png" },
+        { "kind": "coin", "minorValue": 2, "diameterMm": 17.0, "shape": "circle", "color": "#B87333", "label": "2 gr", "image": "/currency/pln/coin-2.png" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 19.5, "shape": "circle", "color": "#B87333", "label": "5 gr", "image": "/currency/pln/coin-5.png" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 16.5, "shape": "circle", "color": "#C9B037", "label": "10 gr", "image": "/currency/pln/coin-10.png" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 18.5, "shape": "circle", "color": "#C9B037", "label": "20 gr", "image": "/currency/pln/coin-20.png" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 20.5, "shape": "circle", "color": "#C9B037", "label": "50 gr", "image": "/currency/pln/coin-50.png" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.0, "shape": "circle", "color": "#C0C0C0", "label": "1 zł", "image": "/currency/pln/coin-100.png" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 21.5, "shape": "circle", "color": "#C0C0C0", "label": "2 zł", "image": "/currency/pln/coin-200.png" },
+        { "kind": "coin", "minorValue": 500, "diameterMm": 24.0, "shape": "circle", "color": "#D4AF37", "label": "5 zł", "image": "/currency/pln/coin-500.png" }
       ]
     },
     {
@@ -37,14 +37,14 @@
         { "kind": "note", "minorValue": 10000, "widthMm": 147, "heightMm": 77, "color": "#3C8C3C", "label": "€100", "series": "Europa", "image": "/currency/eur/note-100.jpg" },
         { "kind": "note", "minorValue": 20000, "widthMm": 153, "heightMm": 77, "color": "#D4A017", "label": "€200", "series": "Europa", "image": "/currency/eur/note-200.jpg" },
         { "kind": "note", "minorValue": 50000, "widthMm": 160, "heightMm": 82, "color": "#7B3F9E", "label": "€500", "series": "First series", "status": "legalTenderNotIssued", "image": "/currency/eur/note-500.jpg" },
-        { "kind": "coin", "minorValue": 1, "diameterMm": 16.25, "shape": "circle", "color": "#B87333", "label": "1c" },
-        { "kind": "coin", "minorValue": 2, "diameterMm": 18.75, "shape": "circle", "color": "#B87333", "label": "2c" },
-        { "kind": "coin", "minorValue": 5, "diameterMm": 21.25, "shape": "circle", "color": "#B87333", "label": "5c" },
-        { "kind": "coin", "minorValue": 10, "diameterMm": 19.75, "shape": "circle", "color": "#C9B037", "label": "10c" },
-        { "kind": "coin", "minorValue": 20, "diameterMm": 22.25, "shape": "circle", "color": "#C9B037", "label": "20c" },
-        { "kind": "coin", "minorValue": 50, "diameterMm": 24.25, "shape": "circle", "color": "#C9B037", "label": "50c" },
-        { "kind": "coin", "minorValue": 100, "diameterMm": 23.25, "shape": "circle", "color": "#C0C0C0", "label": "€1" },
-        { "kind": "coin", "minorValue": 200, "diameterMm": 25.75, "shape": "circle", "color": "#D4AF37", "label": "€2" }
+        { "kind": "coin", "minorValue": 1, "diameterMm": 16.25, "shape": "circle", "color": "#B87333", "label": "1c", "image": "/currency/eur/coin-1c.png" },
+        { "kind": "coin", "minorValue": 2, "diameterMm": 18.75, "shape": "circle", "color": "#B87333", "label": "2c", "image": "/currency/eur/coin-2c.png" },
+        { "kind": "coin", "minorValue": 5, "diameterMm": 21.25, "shape": "circle", "color": "#B87333", "label": "5c", "image": "/currency/eur/coin-5c.png" },
+        { "kind": "coin", "minorValue": 10, "diameterMm": 19.75, "shape": "circle", "color": "#C9B037", "label": "10c", "image": "/currency/eur/coin-10c.png" },
+        { "kind": "coin", "minorValue": 20, "diameterMm": 22.25, "shape": "circle", "color": "#C9B037", "label": "20c", "image": "/currency/eur/coin-20c.png" },
+        { "kind": "coin", "minorValue": 50, "diameterMm": 24.25, "shape": "circle", "color": "#C9B037", "label": "50c", "image": "/currency/eur/coin-50c.png" },
+        { "kind": "coin", "minorValue": 100, "diameterMm": 23.25, "shape": "circle", "color": "#C0C0C0", "label": "€1", "image": "/currency/eur/coin-100c.png" },
+        { "kind": "coin", "minorValue": 200, "diameterMm": 25.75, "shape": "circle", "color": "#D4AF37", "label": "€2", "image": "/currency/eur/coin-200c.png" }
       ]
     },
     {

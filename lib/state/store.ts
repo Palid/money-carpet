@@ -3,6 +3,7 @@ import { useStore as useZustandStore } from 'zustand/react';
 
 import type { Mode, PackResult } from '@/lib/packer/types';
 import type { RatesResponse } from '@/lib/fx/types';
+import { currencyHasImages } from '@/lib/currency/dataset';
 
 /** Lifecycle of the most recent recompute dispatch. */
 export type Status = 'idle' | 'loading' | 'error' | 'unsupported' | 'gpu-lost';
@@ -61,7 +62,9 @@ export const initialAppData: AppData = {
   excludeNonIssued: true,
   primaryDenom: null,
   onlyPrimary: false,
-  useImages: false,
+  // On by default when the initial currency actually has image assets; the
+  // toggle is hidden entirely for currencies that don't (see setCurrency).
+  useImages: currencyHasImages('PLN'),
   rates: null,
   result: null,
   status: 'idle',
@@ -76,7 +79,15 @@ export const store = createStore<AppState>((set) => ({
   // the main-denomination selection, or a stale index would silently point
   // at the wrong denomination in the new currency's array.
   setCurrency: (code) =>
-    set({ currencyCode: code, primaryDenom: null, onlyPrimary: false }),
+    set({
+      currencyCode: code,
+      primaryDenom: null,
+      onlyPrimary: false,
+      // Default the official-images toggle on iff the new currency has image
+      // assets. The toggle is hidden for currencies without images, so this also
+      // keeps the flag from getting stuck "on" after switching to one.
+      useImages: currencyHasImages(code),
+    }),
   setAreaTenths: (t) => set({ areaTenths: t }),
   setMode: (m) => set({ mode: m }),
   setExcludeNonIssued: (b) => set({ excludeNonIssued: b }),
