@@ -297,12 +297,13 @@ export function circleFill(
   };
 
   // --- seat coins ---
-  // Single pass over seeds in descending-SDF order; at each seed place the
-  // LARGEST coin that fits (seeds with the most clearance come first, so larger
-  // coins are seated first and smaller coins fall into the interstices). Every
-  // placement is confirmed by exact integer geometry tests, so the approximate
-  // SDF ordering can never cause an overlap. `consumed` cells (already inside a
-  // placed coin) are skipped so later seeds are not rescanned.
+  // One seatPass per coin radius (largest first, see the call site): each pass
+  // scans seeds in descending-SDF order and seats that single radius everywhere
+  // it fits, so the size tiles its full lattice before the next-smaller size
+  // fills the interstices. Every placement is confirmed by exact integer geometry
+  // tests, so the approximate SDF ordering can never cause an overlap. `consumed`
+  // cells (already inside a placed coin) persist across passes and are skipped so
+  // later passes never rescan the interior of an existing coin.
   const coins: CoinPlacement[] = [];
   let coinArea = 0;
   const consumed = new Uint8Array(nCells);
@@ -326,8 +327,10 @@ export function circleFill(
   };
 
   // One seating pass: scan seeds in descending-SDF order and, at each unconsumed
-  // seed, place the first coin from `types` (already radius-desc) that fits. This
-  // is exactly the original single pass when called with the full coinTypes list.
+  // seed, place the first coin from `types` (already radius-desc) that fits.
+  // Normally called with a single radius so that size tiles densely; a multi-type
+  // `types` list still works (largest-that-fits per seed) and is used for the
+  // coin-primary priority pass.
   const seatPass = (types: CoinType[]) => {
     if (types.length === 0) return;
     const minR = types[types.length - 1].r; // smallest radius in this pass
@@ -360,7 +363,15 @@ export function circleFill(
     const priority = coinTypes.find((ct) => ct.denomIndex === priorityCoinDenom);
     if (priority) seatPass([priority]);
   }
-  seatPass(coinTypes);
+  // Seat coins ONE RADIUS AT A TIME, largest first. Each size claims its full
+  // lattice across the remaining free space before the next-smaller size drops
+  // into the interstices. Seating every size in a single pass (largest-that-fits
+  // at each seed) instead lets a small coin fall into a gap next to the first big
+  // coin and then BLOCK every large-coin position that would have tiled there, so
+  // the fill collapses into a sparse, tiny-coin-dominated ribbon (one 5 zł, then
+  // a cascade of 1 gr). Per-size passes match bruteForceCircleFill and realise the
+  // "larger coins seated first, smaller coins fall into the interstices" intent.
+  for (const ct of coinTypes) seatPass([ct]);
 
   return { coins, coinArea };
 }

@@ -6,6 +6,7 @@ import { packCPU, replayCandidate } from '@/lib/packer/replay';
 import { buildArchetypeOrders, computeBaseSeed, makeCandidate } from '@/lib/packer/candidates';
 import { circleFill, bruteForceCircleFill } from '@/lib/packer/circleFill';
 import { computeRoomSideUnits, type NotePlacement } from '@/lib/packer/skyline';
+import { coinRadiusUnits } from '@/lib/currency/derived';
 
 // PLN: 1 minor unit (grosz) = 0.01 PLN. USD via a fixed test rate 1 USD = 4 PLN
 // -> 1 cent = 0.04 PLN.
@@ -141,6 +142,68 @@ describe('circleFill correctness (small room)', () => {
     expect(cf.coins.length).toBeGreaterThan(0);
     for (const c of cf.coins) {
       // closest point on the note rect to the coin centre
+      const nx = Math.max(note.x, Math.min(c.cx, note.x + note.w));
+      const ny = Math.max(note.y, Math.min(c.cy, note.y + note.h));
+      const dx = c.cx - nx;
+      const dy = c.cy - ny;
+      expect(dx * dx + dy * dy).toBeGreaterThanOrEqual(c.r * c.r);
+    }
+  }, 60000);
+
+  // Regression: notes that leave a NARROW coin-only strip used to make the fill
+  // collapse. The old single pass seated the largest-that-fits coin at each SDF
+  // seed, so one big coin landed and then tiny coins dropped into the gaps beside
+  // it and BLOCKED every large-coin position that would have tiled the strip - a
+  // sparse, 1 gr-dominated ribbon that covered LESS area than the naive brute
+  // force. Seating one radius at a time (largest first) tiles the strip densely,
+  // so circleFill must now cover at least as much as the reference and lean on
+  // larger coins rather than the smallest.
+  it('fills a note-bounded strip densely (>= brute force), largest coins first', () => {
+    // A single note leaves a full-height strip ~60mm wide on the left - wide
+    // enough for the largest PLN coin (5 zl, 24mm), which is exactly where the
+    // old poisoning showed up.
+    const stripW = 6000; // 60mm in 1/100mm units
+    const note: NotePlacement = {
+      denomIndex: 4, // 200 zl (a note)
+      x: stripW,
+      y: 0,
+      w: roomSide - stripW,
+      h: roomSide,
+      rot: 0,
+    };
+    const cf = circleFill([note], roomSide, eligible);
+    const bf = bruteForceCircleFill([note], roomSide, eligible);
+
+    expect(cf.coins.length).toBeGreaterThan(0);
+    // The dense per-radius fill covers at least as much as the brute-force ref
+    // (the old single-pass fill covered materially less here).
+    expect(cf.coinArea).toBeGreaterThanOrEqual(bf.coinArea);
+
+    // The fill should be carried by larger coins, not a ribbon of the smallest.
+    // Mean placed radius must sit well above the minimum coin radius.
+    const radii = eligible.filter((d) => d.kind === 'coin').map((d) => coinRadiusUnits(d));
+    const minR = Math.min(...radii);
+    const maxR = Math.max(...radii);
+    const meanR = cf.coins.reduce((s, c) => s + c.r, 0) / cf.coins.length;
+    expect(meanR).toBeGreaterThan(minR + 0.4 * (maxR - minR));
+
+    // Still overlap-free and in bounds.
+    for (let i = 0; i < cf.coins.length; i++) {
+      for (let j = i + 1; j < cf.coins.length; j++) {
+        const a = cf.coins[i];
+        const b = cf.coins[j];
+        const dx = a.cx - b.cx;
+        const dy = a.cy - b.cy;
+        const rr = a.r + b.r;
+        expect(dx * dx + dy * dy).toBeGreaterThanOrEqual(rr * rr);
+      }
+    }
+    for (const c of cf.coins) {
+      expect(c.cx - c.r).toBeGreaterThanOrEqual(0);
+      expect(c.cy - c.r).toBeGreaterThanOrEqual(0);
+      expect(c.cx + c.r).toBeLessThanOrEqual(roomSide);
+      expect(c.cy + c.r).toBeLessThanOrEqual(roomSide);
+      // never inside the note
       const nx = Math.max(note.x, Math.min(c.cx, note.x + note.w));
       const ny = Math.max(note.y, Math.min(c.cy, note.y + note.h));
       const dx = c.cx - nx;
